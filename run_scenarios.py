@@ -18,7 +18,6 @@ import hpvsim as hpv
 import run_sim as rs
 import utils as ut
 import pars_scenarios as sp
-import analyzers as an
 
 # Comment out to not run
 to_run = [
