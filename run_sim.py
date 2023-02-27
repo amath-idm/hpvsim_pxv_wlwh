@@ -14,7 +14,6 @@ import hpvsim as hpv
 # Imports from this repository
 import pars_data as dp
 import pars_scenarios as sp
-import analyzers as an
 import utils as ut
 
 
