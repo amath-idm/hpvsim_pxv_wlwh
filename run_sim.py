@@ -109,6 +109,7 @@ def run_sim(location=None, vx_intv=None,
                           vx_intv=vx_intv,
                           end=end, debug=debug)
     # Make any parameter updates
+    location = location.replace(' ', '_')
     file = f'{ut.resfolder}/{location}_pars.obj'
     try:
         calib_pars = sc.loadobj(file)

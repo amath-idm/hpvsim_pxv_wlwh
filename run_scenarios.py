@@ -21,8 +21,8 @@ import pars_scenarios as sp
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -39,14 +39,13 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     msim = hpv.MultiSim(sims)
     msim.reduce(use_mean=use_mean)
-    i_r, i_c, i_ca, i_s = sims[0].meta.inds
+    i_r, i_pl, i_s = sims[0].meta.inds
     for s, sim in enumerate(sims):  # Check that everything except seed matches
         assert i_r == sim.meta.inds[0]
-        assert i_c == sim.meta.inds[1]
-        assert i_ca == sim.meta.inds[2]
-        assert (s == 0) or i_s != sim.meta.inds[3]
+        assert i_pl == sim.meta.inds[1]
+        assert (s == 0) or i_s != sim.meta.inds[2]
     msim.meta = sc.objdict()
-    msim.meta.inds = [i_r, i_c, i_ca]
+    msim.meta.inds = [i_r, i_pl]
     msim.meta.vals = sc.dcp(sims[0].meta.vals)
     msim.meta.vals.pop('seed')
 
@@ -58,7 +57,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, routine_coverage=None, catchup_coverage=None, catchup_age_range=None, # Input data
+def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -68,27 +67,24 @@ def run_scens(location=None, routine_coverage=None, catchup_coverage=None, catch
     # Set up iteration arguments
     ikw = []
     count = 0
-    n_sims = len(routine_coverage) * len(catchup_coverage) * len(catchup_age_range) * n_seeds
+    n_sims = len(vx_coverage) * len(plwh) * n_seeds
 
-    for i_r, routine_cov in enumerate(routine_coverage):
-        for i_c, catchup_cov in enumerate(catchup_coverage):
-            for i_ca, catchup_age in enumerate(catchup_age_range):
-                for i_s in range(n_seeds):  # n seeds
-                    count += 1
-                    meta = sc.objdict()
-                    meta.count = count
-                    meta.n_sims = n_sims
-                    meta.inds = [i_r,i_c, i_ca, i_s]
-                    vx_scen_dict = dict(
-                        routine_coverage=routine_cov,
-                        catchup_coverage=catchup_cov,
-                        catchup_age_range=catchup_age
-                    )
-                    meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, routine_coverage=routine_cov,
-                                                                            catchup_coverage=catchup_cov,
-                                                                            catchup_age_range=catchup_age)))
-                    ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
-                    ikw[-1].meta = meta
+    for i_r, routine_cov in enumerate(vx_coverage):
+        for i_pl, plwh_scen in enumerate(plwh):
+            for i_s in range(n_seeds):  # n seeds
+                count += 1
+                meta = sc.objdict()
+                meta.count = count
+                meta.n_sims = n_sims
+                meta.inds = [i_r, i_pl, i_s]
+                vx_scen_dict = dict(
+                    vx_coverage=routine_cov,
+                    plwh=plwh
+                )
+                meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, vx_coverage=routine_cov,
+                                                                        plwh=plwh)))
+                ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
+                ikw[-1].meta = meta                
 
     # Actually run
     sc.heading(f'Running {len(ikw)} scenario sims...')
@@ -96,29 +92,29 @@ def run_scens(location=None, routine_coverage=None, catchup_coverage=None, catch
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
-    sims = np.empty((len(routine_coverage), len(catchup_coverage), len(catchup_age_range), n_seeds), dtype=object)
+    sims = np.empty((len(vx_coverage), len(plwh), n_seeds), dtype=object)
 
     for sim in all_sims:  # Unflatten array
-        i_r,i_c, i_ca, i_s = sim.meta.inds
-        sims[i_r,i_c, i_ca, i_s] = sim
+        i_r,i_pl, i_s = sim.meta.inds
+        sims[i_r,i_pl, i_s] = sim
 
     # Prepare to convert sims to msims
     all_sims_for_multi = []
-    for i_r in range(len(routine_coverage)):
-        for i_c in range(len(catchup_coverage)):
-            for i_ca in range(len(catchup_age_range)):
-                sim_seeds = sims[i_r,i_c, i_ca, :].tolist()
-                all_sims_for_multi.append(sim_seeds)
+    for i_r in range(len(vx_coverage)):
+        for i_pl in range(len(plwh)):
+            sim_seeds = sims[i_r, i_pl, :].tolist()
+            all_sims_for_multi.append(sim_seeds)
+                
 
     # Convert sims to msims
-    msims = np.empty((len(routine_coverage), len(catchup_coverage), len(catchup_age_range)), dtype=object)
+    msims = np.empty((len(vx_coverage), len(plwh)), dtype=object)
     all_msims = sc.parallelize(make_msims, iterarg=all_sims_for_multi)
 
     # Now strip out all the results and place them in a dataframe
     dfs = sc.autolist()
     for msim in all_msims:
-        i_r, i_c, i_ca = msim.meta.inds
-        msims[i_r, i_c, i_ca] = msim
+        i_r, i_pl = msim.meta.inds
+        msims[i_r, i_pl] = msim
         df = pd.DataFrame()
         df['year']                      = msim.results['year']
         df['cancers']                   = msim.results['cancers'][:] # TODO: process in a loop
@@ -139,12 +135,12 @@ def run_scens(location=None, routine_coverage=None, catchup_coverage=None, catch
         df['location'] = location
 
         # Store metadata about run #TODO: fix this
-        df['routine_coverage'] = msim.meta.vals['routine_coverage']
-        df['catchup_coverage'] = msim.meta.vals['catchup_coverage']
-        df['catchup_age_range'] = msim.meta.vals['catchup_age_range'][0]
+        df['vx_coverage'] = msim.meta.vals['vx_coverage']
+        df['plwh'] = msim.meta.vals['plwh']
         dfs += df
 
     alldf = pd.concat(dfs)
+    location = location.replace(' ', '_')
     sc.saveobj(f'{ut.resfolder}/{location}_results.obj', alldf)
 
     return alldf, msims
@@ -164,14 +160,13 @@ if __name__ == '__main__':
     if 'run_scenarios' in to_run:
 
         # Construct the scenarios
-        location = 'india'
+        location = 'south africa'
 
-        routine_coverage = [0,0.2, 0.4, 0.6, 0.8, 1]
-        catchup_coverage = [0, 0.2, 0.4, 0.6, 0.8, 1]
-        catchup_age_range = [(10,18), (15,18)]
+        vx_coverage = [0,0.4, 0.8, 1]
+        plwh = [True, False]
 
-        alldf, msims = run_scens(routine_coverage=routine_coverage, catchup_coverage=catchup_coverage,
-                                 catchup_age_range=catchup_age_range, n_seeds=n_seeds, location=location, debug=debug)
+        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
+                                 debug=debug)
 
 
     # Plot results of scenarios
@@ -188,7 +183,7 @@ if __name__ == '__main__':
 
         ut.plot_relative_impact(
             location=location,
-            routine_coverage = [0,0.2, 0.4, 0.6, 0.8, 1],
+            vx_coverage = [0,0.2, 0.4, 0.6, 0.8, 1],
             catchup_coverage = [0, 0.2, 0.4, 0.6, 0.8, 1],
             catchup_age_range = [(10,18), (15,18)]
         )
