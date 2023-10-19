@@ -9,7 +9,7 @@ import hpvsim as hpv
 import pars_data as dp
 
 
-def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, age_range=(9,14), target_PLWH=False):
+def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, age_range=(9,14), plwh=False):
 
     catchup_age = (age_range[0]+1, age_range[1])
     routine_age = (age_range[0], age_range[0]+1)
@@ -32,7 +32,7 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
 
     intvs = [routine_vx, catchup_vx]
 
-    if target_PLWH:
+    if plwh:
         uptake = 0.8
         px_eligible = lambda sim: (sim.people.hiv) & (sim.people.age >= 16) & (sim.people.age < 30)
         paired_vx = hpv.routine_vx(
