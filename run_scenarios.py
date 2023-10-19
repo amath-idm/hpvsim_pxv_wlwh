@@ -163,7 +163,7 @@ if __name__ == '__main__':
         location = 'south africa'
 
         vx_coverage = [0,0.4, 0.8, 1]
-        plwh = [True, False]
+        plwh = [0, 1]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
                                  debug=debug)
@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
     # Plot results of scenarios
     if 'plot_scenarios' in to_run:
-        location = 'india'
+        location = 'south africa'
         # ut.plot_residual_burden(
         #     location=location,
         #     vx_scens=['No vaccine',
