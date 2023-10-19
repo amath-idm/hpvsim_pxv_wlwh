@@ -81,10 +81,11 @@ def make_sim_parts(location=None, calib=False, debug=0,
     return pars, analyzers, interventions
 
 
-def make_sim(pars=None, analyzers=None, interventions=None, datafile=None, seed=1):
+def make_sim(pars=None, analyzers=None, interventions=None, datafile=None, hiv_datafile=None,
+        art_datafile=None, seed=1):
     ''' Actually create the sim '''
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
-                  datafile=datafile, rand_seed=seed)
+                  datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
     return sim
 
 
@@ -119,7 +120,10 @@ def run_sim(location=None, vx_intv=None,
     pars = sc.mergedicts(args[0], calib_pars)
     args = pars, args[1], args[2]
 
-    sim = make_sim(*args)
+    hiv_datafile = f'data/hiv_incidence_{location}.csv'
+    art_datafile = f'data/art_coverage_{location}.csv'
+
+    sim = make_sim(*args, hiv_datafile=hiv_datafile, art_datafile=art_datafile)
 
     # Store metadata
     sim.meta = sc.objdict()
