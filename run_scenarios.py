@@ -21,29 +21,15 @@ import pars_scenarios as sp
 
 # Comment out to not run
 to_run = [
-    'run_scenarios',
-    # 'plot_scenarios',
+    # 'run_scenarios',
+    'plot_scenarios',
 
 ]
 
-# Comment out locations to not run
-locations = [
-    'south africa'
-]
 
 debug = 0
-n_seeds = [3, 1][debug] # How many seeds to use for stochasticity in projections
-n_draws = [300, 2] [debug]  # How many draws to do for the sweeps
+n_seeds = [1, 1][debug] # How many seeds to use for stochasticity in projections
 
-label_dict = {
-    'No screening': 'no_screening',
-    'No vaccine': 'no_vaccine',
-    'HPV, 35% sc cov, 50% tx cov': '35sc_50tx',
-    'HPV, 70% sc cov, 90% tx cov': '70sc_90tx',
-    'Vx, 70% cov, 9-14': '70vx_9_to_14',
-    'Vx, 70% cov, 9-24': '70vx_9_to_24',
-    'Vx, 70% cov, 9-14, target PLWH': '70vx_9_to_14_target_PLWH'
-}
 #%% Functions
 
 def make_msims(sims, use_mean=True, save_msims=False):
@@ -53,13 +39,14 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     msim = hpv.MultiSim(sims)
     msim.reduce(use_mean=use_mean)
-    i_sc, i_vx, i_s = sims[0].meta.inds
+    i_r, i_c, i_ca, i_s = sims[0].meta.inds
     for s, sim in enumerate(sims):  # Check that everything except seed matches
-        assert i_sc == sim.meta.inds[0]
-        assert i_vx == sim.meta.inds[1]
-        assert (s == 0) or i_s != sim.meta.inds[2]
+        assert i_r == sim.meta.inds[0]
+        assert i_c == sim.meta.inds[1]
+        assert i_ca == sim.meta.inds[2]
+        assert (s == 0) or i_s != sim.meta.inds[3]
     msim.meta = sc.objdict()
-    msim.meta.inds = [i_sc, i_vx]
+    msim.meta.inds = [i_r, i_c, i_ca]
     msim.meta.vals = sc.dcp(sims[0].meta.vals)
     msim.meta.vals.pop('seed')
 
@@ -71,7 +58,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, screen_intvs=None, vx_intvs=None, # Input data
+def run_scens(location=None, routine_coverage=None, catchup_coverage=None, catchup_age_range=None, # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -81,23 +68,27 @@ def run_scens(location=None, screen_intvs=None, vx_intvs=None, # Input data
     # Set up iteration arguments
     ikw = []
     count = 0
-    n_sims = len(screen_intvs) * len(vx_intvs) * n_seeds
+    n_sims = len(routine_coverage) * len(catchup_coverage) * len(catchup_age_range) * n_seeds
 
-    for i_sc, sc_label, screen_scen_pars in screen_intvs.enumitems():
-        for i_vx, vx_label, vx_scen_pars in vx_intvs.enumitems():
-            for i_s in range(n_seeds):  # n seeds
-                count += 1
-                meta = sc.objdict()
-                meta.count = count
-                meta.n_sims = n_sims
-                meta.inds = [i_sc, i_vx, i_s]
-                meta.vals = sc.objdict(sc.mergedicts(screen_scen_pars, vx_scen_pars,
-                                                     dict(seed=i_s, screen_scen=sc_label, vx_scen=vx_label)))
-                ikw.append(
-                    sc.objdict(screen_intv=screen_scen_pars, vx_intv=vx_scen_pars, seed=i_s))
-                ikw[-1].meta = meta
-
-
+    for i_r, routine_cov in enumerate(routine_coverage):
+        for i_c, catchup_cov in enumerate(catchup_coverage):
+            for i_ca, catchup_age in enumerate(catchup_age_range):
+                for i_s in range(n_seeds):  # n seeds
+                    count += 1
+                    meta = sc.objdict()
+                    meta.count = count
+                    meta.n_sims = n_sims
+                    meta.inds = [i_r,i_c, i_ca, i_s]
+                    vx_scen_dict = dict(
+                        routine_coverage=routine_cov,
+                        catchup_coverage=catchup_cov,
+                        catchup_age_range=catchup_age
+                    )
+                    meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, routine_coverage=routine_cov,
+                                                                            catchup_coverage=catchup_cov,
+                                                                            catchup_age_range=catchup_age)))
+                    ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
+                    ikw[-1].meta = meta
 
     # Actually run
     sc.heading(f'Running {len(ikw)} scenario sims...')
@@ -105,28 +96,29 @@ def run_scens(location=None, screen_intvs=None, vx_intvs=None, # Input data
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
-    sims = np.empty((len(screen_intvs), len(vx_intvs),  n_seeds), dtype=object)
+    sims = np.empty((len(routine_coverage), len(catchup_coverage), len(catchup_age_range), n_seeds), dtype=object)
 
     for sim in all_sims:  # Unflatten array
-        i_sc, i_vx, i_s = sim.meta.inds
-        sims[i_sc, i_vx, i_s] = sim
+        i_r,i_c, i_ca, i_s = sim.meta.inds
+        sims[i_r,i_c, i_ca, i_s] = sim
 
     # Prepare to convert sims to msims
     all_sims_for_multi = []
-    for i_sc in range(len(screen_intvs)):
-        for i_vx in range(len(vx_intvs)):
-            sim_seeds = sims[i_sc, i_vx, :].tolist()
-            all_sims_for_multi.append(sim_seeds)
+    for i_r in range(len(routine_coverage)):
+        for i_c in range(len(catchup_coverage)):
+            for i_ca in range(len(catchup_age_range)):
+                sim_seeds = sims[i_r,i_c, i_ca, :].tolist()
+                all_sims_for_multi.append(sim_seeds)
 
     # Convert sims to msims
-    msims = np.empty((len(screen_intvs), len(vx_intvs)), dtype=object)
+    msims = np.empty((len(routine_coverage), len(catchup_coverage), len(catchup_age_range)), dtype=object)
     all_msims = sc.parallelize(make_msims, iterarg=all_sims_for_multi)
 
     # Now strip out all the results and place them in a dataframe
     dfs = sc.autolist()
     for msim in all_msims:
-        i_sc, i_vx = msim.meta.inds
-        msims[i_sc, i_vx] = msim
+        i_r, i_c, i_ca = msim.meta.inds
+        msims[i_r, i_c, i_ca] = msim
         df = pd.DataFrame()
         df['year']                      = msim.results['year']
         df['cancers']                   = msim.results['cancers'][:] # TODO: process in a loop
@@ -141,25 +133,19 @@ def run_scens(location=None, screen_intvs=None, vx_intvs=None, # Input data
         df['cancer_deaths']             = msim.results['cancer_deaths'][:]
         df['cancer_deaths_low']         = msim.results['cancer_deaths'].low
         df['cancer_deaths_high']        = msim.results['cancer_deaths'].high
-        df['n_screened']                = msim.results['n_screened'][:]
-        df['n_screened_low']            = msim.results['n_screened'].low
-        df['n_screened_high']           = msim.results['n_screened'].high
-        df['n_cin_treated']             = msim.results['n_cin_treated'][:]
-        df['n_cin_treated_low']         = msim.results['n_cin_treated'].low
-        df['n_cin_treated_high']        = msim.results['n_cin_treated'].high
         df['n_vaccinated']              = msim.results['n_vaccinated'][:]
         df['n_vaccinated_low']          = msim.results['n_vaccinated'].low
         df['n_vaccinated_high']         = msim.results['n_vaccinated'].high
         df['location'] = location
 
         # Store metadata about run #TODO: fix this
-        df['vx_scen'] = msim.meta.vals['vx_scen']
-        df['screen_scen'] = msim.meta.vals['screen_scen']
-        filestem_label= f'{label_dict[msim.meta.vals["vx_scen"]]}_{label_dict[msim.meta.vals["screen_scen"]]}'
-        sc.saveobj(f'{ut.resfolder}/{location}_{filestem_label}.obj', df)
+        df['routine_coverage'] = msim.meta.vals['routine_coverage']
+        df['catchup_coverage'] = msim.meta.vals['catchup_coverage']
+        df['catchup_age_range'] = msim.meta.vals['catchup_age_range'][0]
         dfs += df
 
     alldf = pd.concat(dfs)
+    sc.saveobj(f'{ut.resfolder}/{location}_results.obj', alldf)
 
     return alldf, msims
 
@@ -177,57 +163,34 @@ if __name__ == '__main__':
 
     if 'run_scenarios' in to_run:
 
-        filestem = 'plwh_results'
-        alldfs = sc.autolist()
-        for location in locations:
+        # Construct the scenarios
+        location = 'india'
 
-            # Construct the scenarios
+        routine_coverage = [0,0.2, 0.4, 0.6, 0.8, 1]
+        catchup_coverage = [0, 0.2, 0.4, 0.6, 0.8, 1]
+        catchup_age_range = [(10,18), (15,18)]
 
-            screen_scens = sc.objdict({
-                'No screening': {},
-                'HPV, 35% sc cov, 50% tx cov': dict(
-                    primary=dict(
-                        precin=0.3,
-                        cin1=0.3,
-                        cin2=0.93,
-                        cin3=0.93,
-                        cancerous=0.93
-                    ),
-                    screen_coverage= 0.35,
-                    tx_coverage=0.5
-                ),
-            })
-
-            vx_scens = sc.objdict({
-                'No vaccine': {},
-                'Vx, 70% cov, 9-14': dict(
-                    vx_coverage=0.7,
-                    age_range=(9,14)
-                ),
-                'Vx, 70% cov, 9-24': dict(
-                    vx_coverage=0.7,
-                    age_range=(9, 24)
-                ),
-                'Vx, 70% cov, 9-14, target PLWH': dict(
-                    vx_coverage=0.7,
-                    age_range=(9, 14),
-                    target_PLWH=True
-                ),
-            })
-
-
-            alldf, msims = run_scens(screen_intvs=screen_scens, vx_intvs=vx_scens,
-                                     n_seeds=n_seeds, location=location, debug=debug)
+        alldf, msims = run_scens(routine_coverage=routine_coverage, catchup_coverage=catchup_coverage,
+                                 catchup_age_range=catchup_age_range, n_seeds=n_seeds, location=location, debug=debug)
 
 
     # Plot results of scenarios
     if 'plot_scenarios' in to_run:
-        for location in locations:
-            location_file = location.replace(' ', '_')
-            ut.plot_residual_burden(
-                label_dict=label_dict,
-                location=location_file,
-                vx_scens=['No vaccine', 'Vx, 70% cov, 9-14', 'Vx, 70% cov, 9-24', 'Vx, 70% cov, 9-14, target PLWH'],
-                screen_scens=['No screening', 'HPV, 35% sc cov, 50% tx cov'],
-            )
+        location = 'india'
+        # ut.plot_residual_burden(
+        #     location=location,
+        #     vx_scens=['No vaccine',
+        #               'Vx, 50% cov, 9-10 routine, 10-18 catchup',
+        #               'Vx, 50% cov, 9-10 routine, 15-18 catchup',
+        #               'Vx, 70% cov, 9-10 routine, 10-18 catchup',
+        #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
+        # )
+
+        ut.plot_relative_impact(
+            location=location,
+            routine_coverage = [0,0.2, 0.4, 0.6, 0.8, 1],
+            catchup_coverage = [0, 0.2, 0.4, 0.6, 0.8, 1],
+            catchup_age_range = [(10,18), (15,18)]
+        )
+
 
