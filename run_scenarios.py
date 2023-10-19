@@ -79,10 +79,10 @@ def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
                 meta.inds = [i_r, i_pl, i_s]
                 vx_scen_dict = dict(
                     vx_coverage=routine_cov,
-                    plwh=plwh
+                    plwh=plwh_scen
                 )
                 meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, vx_coverage=routine_cov,
-                                                                        plwh=plwh)))
+                                                                        plwh=plwh_scen)))
                 ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
                 ikw[-1].meta = meta                
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
         location = 'south africa'
 
         vx_coverage = [0,0.4, 0.8, 1]
-        plwh = [0, 1]
+        plwh = [True, False]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
                                  debug=debug)
