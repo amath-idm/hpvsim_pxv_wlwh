@@ -68,7 +68,7 @@ def make_sim_parts(location=None, calib=False, debug=0,
         ms_agent_ratio = 100,
         verbose        = 0.0,
         model_hiv      = True,
-        hiv_pars       = dict(rel_imm=dict( lt200=1,gt200=1))
+        # hiv_pars       = dict(rel_imm=dict( lt200=1,gt200=1))
     )
 
 

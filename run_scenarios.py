@@ -28,7 +28,7 @@ to_run = [
 
 
 debug = 0
-n_seeds = [3, 1][debug] # How many seeds to use for stochasticity in projections
+n_seeds = [1, 1][debug] # How many seeds to use for stochasticity in projections
 
 #%% Functions
 
@@ -181,11 +181,11 @@ if __name__ == '__main__':
         #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
         # )
 
-        ut.plot_impact(
-            location=location,
-            routine_coverage=[0, 0.4, 0.8, 1],
-            plwh = [True, False]
-        )
+        # ut.plot_impact(
+        #     location=location,
+        #     routine_coverage=[0, 0.4, 0.8, 1],
+        #     plwh = [True, False]
+        # )
 
         ut.plot_ts(
             location=location,
