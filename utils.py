@@ -90,7 +90,7 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
         df_pivot.plot(kind="bar", ax=axes[iv])
         axes[iv].set_xlabel('Vaccine Coverage')
         axes[iv].set_ylabel(val)
-        axes[iv].set_xticklabels(['0%', '40%', '80%', '100%'], rotation=0)
+        axes[iv].set_xticklabels(['0%', '40%', '80%'], rotation=0)
         sc.SIticks(axes[iv])
 
     fig.tight_layout()
