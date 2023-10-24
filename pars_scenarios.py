@@ -17,7 +17,7 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
     routine_vx = hpv.routine_vx(
         prob=vx_coverage,
         start_year=routine_start_year,
-        product='bivalent',
+        product='nonavalent',
         age_range=routine_age,
         label='Routine vx'
     )
@@ -25,7 +25,7 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
     catchup_vx = hpv.campaign_vx(
         prob=vx_coverage,
         years=catch_up_year,
-        product='bivalent',
+        product='nonavalent',
         age_range=catchup_age,
         label='Catchup vx'
     )
@@ -34,11 +34,11 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
 
     if plwh:
         uptake = 0.8
-        px_eligible = lambda sim: (sim.people.hiv) & (sim.people.age >= 16) & (sim.people.age < 30) & (sim.people.hiv < 2)
+        px_eligible = lambda sim: (sim.people.hiv) & (sim.people.age >= 16) & (sim.people.age < 30) & (sim.people.doses < 2)
         paired_vx = hpv.routine_vx(
             prob=uptake,
             eligibility=px_eligible,
-            product='bivalent',
+            product='nonavalent',
             label='PxV for PLWH'
         )
         intvs += [paired_vx]
