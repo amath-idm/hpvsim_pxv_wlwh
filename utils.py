@@ -79,13 +79,13 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
     final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['n_vaccinated']
 
     fig, axes = pl.subplots(3, 1, figsize=(12, 12))
-    for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'n_vaccinated']):
+    for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'deaths_averted_FVP']):
 
         df_pivot = pd.pivot_table(
             final_df,
             values=val,
             index="vx_coverage",
-            columns="plwh"
+            # columns="plwh"
         )
         df_pivot.plot(kind="bar", ax=axes[iv])
         axes[iv].set_xlabel('Vaccine Coverage')
@@ -174,12 +174,17 @@ def plot_ts(location=None, routine_coverage=None, plwh=None):
                 df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen)]
                 years = np.array(df['year'])[ys:ye]
                 result = np.array(df[val])[ys:ye]
+                low = np.array(df[f'{val}_low'])[ys:ye]
+                high = np.array(df[f'{val}_high'])[ys:ye]
                 if iv + ip == 0:
                     axes[iv].plot(years, result, color=colors[ir], linestyle=ls[ip], label=routine_cov)
+                    axes[iv].fill_between(years, low, high, color=colors[ir], alpha=0.3)
                 elif iv == 1 and ir ==1:
                     axes[iv].plot(years, result, color=colors[ir], linestyle=ls[ip], label=plwh_scen)
+                    axes[iv].fill_between(years, low, high, color=colors[ir], alpha=0.3)
                 else:
                     axes[iv].plot(years, result, color=colors[ir], linestyle=ls[ip])
+                    axes[iv].fill_between(years, low, high, color=colors[ir], alpha=0.3)
 
 
         axes[iv].set_title(val)
