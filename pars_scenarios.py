@@ -37,6 +37,7 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
         px_eligible = lambda sim: (sim.people.hiv == True) & (sim.people.doses < 2)
         paired_vx = hpv.routine_vx(
             prob=uptake,
+            start_year=routine_start_year,
             eligibility=px_eligible,
             age_range=(16,30),
             product='nonavalent',
