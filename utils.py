@@ -65,20 +65,21 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
 
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
-        for plwh_scen in plwh:
-            summary_df = pd.DataFrame()
-            df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen)]
-            summary_df['cancers'] = [np.sum(np.array(df['cancers'])[ys:ye])]
-            summary_df['cancer_deaths'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye])]
-            summary_df['n_vaccinated'] = [df['n_vaccinated'][yev]]
-            summary_df['vx_coverage'] = routine_cov
-            summary_df['plwh'] = plwh_scen
-            dfs += summary_df
+        summary_df = pd.DataFrame()
+        plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == True)]
+        df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == False)]
+        summary_df['cancers_averted'] = [np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
+        summary_df['cancer_deaths_averted'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
+        summary_df['n_vaccinated'] = [plwh_df['n_vaccinated'][yev] - df['n_vaccinated'][yev]]
+        summary_df['vx_coverage'] = routine_cov
+        dfs += summary_df
 
     final_df = pd.concat(dfs)
 
+    final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['n_vaccinated']
+
     fig, axes = pl.subplots(3, 1, figsize=(12, 12))
-    for iv, val in enumerate(['cancers', 'cancer_deaths', 'n_vaccinated']):
+    for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'n_vaccinated']):
 
         df_pivot = pd.pivot_table(
             final_df,
@@ -159,7 +160,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None):
     bigdf = sc.loadobj(f'{resfolder}/{location}_results.obj')
 
     years = bigdf['year'].unique().astype(int)
-    ys = sc.findinds(years, 2020)[0]
+    ys = sc.findinds(years, 2010)[0]
     ye = sc.findinds(years, 2100)[0]
 
     colors = sc.gridcolors(20)
