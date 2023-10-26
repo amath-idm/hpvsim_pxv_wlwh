@@ -132,9 +132,9 @@ def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
         df['n_vaccinated']              = msim.results['n_vaccinated'][:]
         df['n_vaccinated_low']          = msim.results['n_vaccinated'].low
         df['n_vaccinated_high']         = msim.results['n_vaccinated'].high
-        df['n_doses'] = msim.results['n_doses'][:]
-        df['n_doses_low'] = msim.results['n_doses_low'].low
-        df['n_doses_high'] = msim.results['n_doses_high'].high
+        # df['n_doses'] = msim.results['n_doses'][:]
+        # df['n_doses_low'] = msim.results['n_doses_low'].low
+        # df['n_doses_high'] = msim.results['n_doses_high'].high
         df['cum_doses'] = msim.results['cum_doses'][:]
         df['cum_doses_low'] = msim.results['cum_doses_low'].low
         df['cum_doses_high'] = msim.results['cum_doses_high'].high
