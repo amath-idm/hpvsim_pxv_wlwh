@@ -136,8 +136,8 @@ def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
         # df['n_doses_low'] = msim.results['n_doses_low'].low
         # df['n_doses_high'] = msim.results['n_doses_high'].high
         df['cum_doses'] = msim.results['cum_doses'][:]
-        df['cum_doses_low'] = msim.results['cum_doses_low'].low
-        df['cum_doses_high'] = msim.results['cum_doses_high'].high
+        df['cum_doses_low'] = msim.results['cum_doses'].low
+        df['cum_doses_high'] = msim.results['cum_doses'].high
         df['location'] = location
 
         # Store metadata about run #TODO: fix this
