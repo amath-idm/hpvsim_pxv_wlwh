@@ -74,7 +74,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         hiv_datafile = None
         art_datafile = None
 
-    sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile)
+    sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
         f'data/{location.replace(" ", "_")}_cancer_cases.csv',
         f'data/{location.replace(" ", "_")}_cin_types.csv',
