@@ -34,9 +34,8 @@ save_plots = True
 
 
 #%% Simulation creation functions
-def make_sim_parts(location=None, calib=False, debug=0,
-                   vx_intv=None,
-                   end=None):
+def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None,
+        art_datafile=None, vx_intv=None, end=None, seed=1):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
@@ -52,18 +51,18 @@ def make_sim_parts(location=None, calib=False, debug=0,
         network        = 'default',
         location       = location,
         genotypes      = [16, 18, 'hi5', 'ohr'],
+        f_partners     = dp.f_partners,
+        m_partners     = dp.m_partners,
         debut          = dp.debut[location],
         mixing         = dp.mixing[location],
         layer_probs    = dp.layer_probs[location],
-        partners       = dp.partners[location],
-        dur_pship      = dp.dur_pship[location],
         init_hpv_dist  = dp.init_genotype_dist[location],
         init_hpv_prev  = {
             'age_brackets'  : np.array([  12,   17,   24,   34,  44,   64,    80, 150]),
             'm'             : np.array([ 0.0, 0.25, 0.6, 0.25, 0.05, 0.01, 0.0005, 0]),
             'f'             : np.array([ 0.0, 0.35, 0.7, 0.25, 0.05, 0.01, 0.0005, 0]),
         },
-        condoms        = dict(m=0.01, c=0.1, o=0.1),
+        condoms        = dict(m=0.01, c=0.1),
         eff_condoms    = 0.5,
         ms_agent_ratio = 100,
         verbose        = 0.0,
@@ -72,6 +71,8 @@ def make_sim_parts(location=None, calib=False, debug=0,
     )
 
 
+    if calib_pars is not None:
+        pars = sc.mergedicts(pars, calib_pars)
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
@@ -79,16 +80,10 @@ def make_sim_parts(location=None, calib=False, debug=0,
         if len(vx_intv):
             interventions += sp.get_vx_intvs(**vx_intv)
 
-
-    return pars, analyzers, interventions
-
-
-def make_sim(pars=None, analyzers=None, interventions=None, datafile=None, hiv_datafile=None,
-        art_datafile=None, seed=1):
-    ''' Actually create the sim '''
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
     return sim
+
 
 
 

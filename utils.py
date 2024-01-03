@@ -70,13 +70,13 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
         df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == False)]
         summary_df['cancers_averted'] = [np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
         summary_df['cancer_deaths_averted'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
-        summary_df['n_vaccinated'] = [plwh_df['n_vaccinated'][yev] - df['n_vaccinated'][yev]]
+        summary_df['cum_doses'] = [plwh_df['cum_doses'][yev] - df['cum_doses'][yev]]
         summary_df['vx_coverage'] = routine_cov
         dfs += summary_df
 
     final_df = pd.concat(dfs)
 
-    final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['n_vaccinated']
+    final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['cum_doses']
 
     fig, axes = pl.subplots(3, 1, figsize=(12, 12))
     for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'deaths_averted_FVP']):
@@ -98,6 +98,31 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
     sc.savefig(fig_name, dpi=100)
 
     return
+
+
+def make_datafiles(locations):
+    ''' Get the relevant datafiles for the selected locations '''
+    datafiles = dict()
+    asr_locs            = ['drc', 'ethiopia', 'kenya', 'nigeria', 'tanzania', 'uganda']
+    cancer_type_locs    = ['ethiopia', 'kenya', 'nigeria', 'tanzania', 'india', 'uganda']
+    cin_type_locs       = ['nigeria', 'tanzania', 'india']
+
+    for location in locations:
+        dflocation = location.replace(' ','_')
+        datafiles[location] = [
+            f'data/{dflocation}_cancer_cases.csv',
+        ]
+
+        if location in asr_locs:
+            datafiles[location] += [f'data/{dflocation}_asr_cancer_incidence.csv']
+
+        if location in cancer_type_locs:
+            datafiles[location] += [f'data/{dflocation}_cancer_types.csv']
+
+        if location in cin_type_locs:
+            datafiles[location] += [f'data/{dflocation}_cin_types.csv']
+
+    return datafiles
 
 
 ########################################################################
