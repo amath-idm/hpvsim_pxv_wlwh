@@ -6,7 +6,15 @@ By default, all locations are run. To not run a location, comment out the line
 below. For all three locations, this script should take 1-5 minutes to run.
 '''
 
+# Additions to handle numpy multithreading
+import os
 
+os.environ.update(
+    OMP_NUM_THREADS='1',
+    OPENBLAS_NUM_THREADS='1',
+    NUMEXPR_NUM_THREADS='1',
+    MKL_NUM_THREADS='1',
+)
 # Standard imports
 import numpy as np
 import sciris as sc
@@ -17,15 +25,6 @@ import pars_data as dp
 import pars_scenarios as sp
 import utils as ut
 
-# Additions to handle numpy multithreading
-import os
-
-os.environ.update(
-    OMP_NUM_THREADS='1',
-    OPENBLAS_NUM_THREADS='1',
-    NUMEXPR_NUM_THREADS='1',
-    MKL_NUM_THREADS='1',
-)
 
 
 #%% Settings and filepaths
@@ -100,7 +99,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
 #%% Simulation running functions
 
-def run_sim(location=None, vx_intv=None,
+def run_sim(location=None, vx_intv=None, calib_pars=None,
             debug=0, seed=0, label=None, meta=None, verbose=0.1, end=None,
             do_save=False, die=False):
     ''' Assemble the parts into a complete sim and run it '''
@@ -114,24 +113,16 @@ def run_sim(location=None, vx_intv=None,
     print(msg)
 
     # Make arguments
-    args = make_sim_parts(location=location,
-                          vx_intv=vx_intv,
-                          end=end, debug=debug)
-    # Make any parameter updates
-    location = location.replace(' ', '_')
-    file = f'{ut.resfolder}/{location}_pars.obj'
-    try:
-        calib_pars = sc.loadobj(file)
-    except:
-        errormsg = 'Calibration parameters cannot be loaded from disk. Try running load_calib to generate them.'
-        raise ValueError(errormsg)
-    pars = sc.mergedicts(args[0], calib_pars)
-    args = pars, args[1], args[2]
-
-    hiv_datafile = f'data/hiv_incidence_{location}.csv'
-    art_datafile = f'data/art_coverage_{location}.csv'
-
-    sim = make_sim(*args, hiv_datafile=hiv_datafile, art_datafile=art_datafile)
+    # Make sim
+    sim = make_sim(
+        location=location,
+        debug=debug,
+        vx_intv=vx_intv,
+        calib_pars=calib_pars,
+        end=end,
+    )
+    sim['rand_seed'] = seed
+    sim.label = f'{location}--{seed}'
 
     # Store metadata
     sim.meta = sc.objdict()
@@ -140,16 +131,14 @@ def run_sim(location=None, vx_intv=None,
     else:
         sim.meta = sc.objdict()
     sim.meta.location = location # Store location in an easy-to-access place
-    sim['rand_seed'] = seed # Set seed
-    sim.label = f'{label}--{location}' # Set label
 
     # Run
     sim['verbose'] = verbose
     sim.run()
     sim.shrink()
-
+    dflocation = location.replace(' ', '_')
     if do_save:
-        sim.save(f'{ut.resfolder}/{location}.sim')
+        sim.save(f'{ut.resfolder}/{dflocation}.sim')
 
     return sim
 

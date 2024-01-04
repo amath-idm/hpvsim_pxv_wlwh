@@ -32,8 +32,8 @@ import pars_scenarios as sp
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -68,7 +68,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
+def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -99,7 +99,9 @@ def run_scens(location=None, vx_coverage=None, plwh=None, # Input data
 
     # Actually run
     sc.heading(f'Running {len(ikw)} scenario sims...')
-    kwargs = dict(verbose=verbose, debug=debug, location=location)
+    dflocation = location.replace(' ', '_')
+    calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
+    kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
@@ -183,7 +185,7 @@ if __name__ == '__main__':
         plwh = [True, False]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
-                                 debug=debug)
+                                 debug=debug, calib_filestem='_jan3')
 
 
     # Plot results of scenarios
