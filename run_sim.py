@@ -111,8 +111,14 @@ def run_sim(location=None, vx_intv=None, calib_pars=None,
         msg = f'Making sim for {location}'
     if debug: msg += ' IN DEBUG MODE'
     print(msg)
-
+    dflocation = location.replace(' ', '_')
     # Make arguments
+    if location == 'south africa':
+        hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
+        art_datafile = f'data/art_coverage_{dflocation}.csv'
+    else:
+        hiv_datafile = None
+        art_datafile = None
     # Make sim
     sim = make_sim(
         location=location,
@@ -120,6 +126,8 @@ def run_sim(location=None, vx_intv=None, calib_pars=None,
         vx_intv=vx_intv,
         calib_pars=calib_pars,
         end=end,
+        hiv_datafile=hiv_datafile,
+        art_datafile=art_datafile,
     )
     sim['rand_seed'] = seed
     sim.label = f'{location}--{seed}'
@@ -136,7 +144,7 @@ def run_sim(location=None, vx_intv=None, calib_pars=None,
     sim['verbose'] = verbose
     sim.run()
     sim.shrink()
-    dflocation = location.replace(' ', '_')
+
     if do_save:
         sim.save(f'{ut.resfolder}/{dflocation}.sim')
 
