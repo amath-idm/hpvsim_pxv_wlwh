@@ -6,6 +6,7 @@ By default, all locations are run. To not run a location, comment out the line
 below. For all three locations, this script should take 1-5 minutes to run.
 '''
 
+
 # Standard imports
 import numpy as np
 import sciris as sc
@@ -15,6 +16,16 @@ import hpvsim as hpv
 import pars_data as dp
 import pars_scenarios as sp
 import utils as ut
+
+# Additions to handle numpy multithreading
+import os
+
+os.environ.update(
+    OMP_NUM_THREADS='1',
+    OPENBLAS_NUM_THREADS='1',
+    NUMEXPR_NUM_THREADS='1',
+    MKL_NUM_THREADS='1',
+)
 
 
 #%% Settings and filepaths
