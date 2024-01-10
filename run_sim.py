@@ -24,6 +24,7 @@ import hpvsim as hpv
 import pars_data as dp
 import pars_scenarios as sp
 import utils as ut
+import analyzers as an
 
 
 
@@ -45,7 +46,7 @@ save_plots = True
 
 #%% Simulation creation functions
 def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None,
-        art_datafile=None, vx_intv=None, end=None, seed=1):
+        art_datafile=None, vx_intv=None, econ_analyzer=False, analyzer=None, end=None, seed=1):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
@@ -90,6 +91,12 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         if len(vx_intv):
             interventions += sp.get_vx_intvs(**vx_intv)
 
+        if econ_analyzer:
+            analyzers += an.econ_analyzer()
+
+        if analyzer is not None:
+            analyzers += analyzer
+
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
     return sim
@@ -99,7 +106,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
 #%% Simulation running functions
 
-def run_sim(location=None, vx_intv=None, calib_pars=None,
+def run_sim(location=None, vx_intv=None, calib_pars=None, econ_analyzer=False,
             debug=0, seed=0, label=None, meta=None, verbose=0.1, end=None,
             do_save=False, die=False):
     ''' Assemble the parts into a complete sim and run it '''
@@ -125,6 +132,7 @@ def run_sim(location=None, vx_intv=None, calib_pars=None,
         debug=debug,
         vx_intv=vx_intv,
         calib_pars=calib_pars,
+        econ_analyzer=econ_analyzer,
         end=end,
         hiv_datafile=hiv_datafile,
         art_datafile=art_datafile,
@@ -165,6 +173,55 @@ def run_sims(locations=None, *args, **kwargs):
 if __name__ == '__main__':
 
     T = sc.timer()
+    location='south africa'
+    calib_filestem='_jan3'
+    dflocation = location.replace(' ', '_')
+    calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
+    analyzer=an.prop_exposed(years=[2020])
+    hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
+    art_datafile = f'data/art_coverage_{dflocation}.csv'
+    # Make sim
 
+    sim = make_sim(location=location,
+                   calib_pars=calib_pars,
+                   analyzer=analyzer,
+                   vx_intv=[],
+                   hiv_datafile=hiv_datafile,
+                   art_datafile=art_datafile,
+                   end=2021
+                   )
+
+    sim.run()
+
+    import matplotlib.pylab as pl
+
+    fig, ax = pl.subplots()
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancers_by_age_with_hiv'][:,-1], label='HIV positive')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancers_by_age_no_hiv'][:, -1], label='HIV negative')
+    ax.legend()
+    fig.show()
+
+    fig, ax = pl.subplots()
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['hpv_prevalence_by_age_with_hiv'][:,-2], label='HIV positive')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['hpv_prevalence_by_age_no_hiv'][:, -2], label='HIV negative')
+    ax.legend()
+    fig.show()
+
+    fig, axes = pl.subplots(nrows=1, ncols=2, sharex=True)
+    xvals = np.arange(10, 30)
+    for i, hiv_status in enumerate([True, False]):
+        ax = axes[i]
+        for gtype, p_exp in sim.analyzers[0].prop_exposed.items():
+            yvals = p_exp[hiv_status][2020]
+            ax.plot(xvals, yvals, label=sim.pars['genotype_map'][gtype].upper())
+    axes[0].set_title('HIV positive')
+    axes[1].set_title('HIV negative')
+    axes[0].legend(title='Genotype')
+    axes[0].set_ylabel('Proportion exposed')
+    for ax in axes:
+        ax.set_xlabel('Age')
+        sc.SIticks(ax)
+    fig.tight_layout()
+    fig.show()
     T.toc('Done')
 
