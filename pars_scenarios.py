@@ -59,9 +59,16 @@ def get_screen_intvs(primary=None, triage=None, screen_coverage=0.7, tx_coverage
     if primary is None: return []
 
     # Create screen products
-    primary_test = make_screen_test(**primary)
+    if isinstance(primary, str):
+        primary_test = hpv.default_dx(prod_name=primary)
+    elif isinstance(primary, dict):
+        primary_test = make_screen_test(**primary)
     if triage is not None:
-        triage_test = make_screen_test(**triage)
+        if isinstance(triage, str):
+            triage_test = hpv.default_dx(prod_name=triage)
+        elif isinstance(triage, dict):
+            triage_test = make_screen_test(**triage)
+
     tx_assigner = make_tx_assigner()
 
     age_range = [30,50]
