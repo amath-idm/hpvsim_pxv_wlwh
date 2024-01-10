@@ -26,8 +26,7 @@ class econ_analyzer(hpv.Analyzer):
 
     def initialize(self, sim):
         super().initialize(sim)
-        columns = ['new_vaccinations'
-                   'new_cancers', 'new_cancer_deaths', 'new_other_deaths',
+        columns = ['new_vaccinations', 'new_cancers', 'new_cancer_deaths', 'new_other_deaths',
                    'av_age_cancers', 'av_age_cancer_deaths', 'av_age_other_deaths']
         self.si = sc.findinds(sim.res_yearvec, self.start)[0]
         self.df = pd.DataFrame(0.0, index=pd.Index(sim.res_yearvec[self.si:], name='year'), columns=columns)
