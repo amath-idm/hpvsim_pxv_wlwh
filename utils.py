@@ -49,7 +49,7 @@ def process_country_files(locations, top_results=100, do_save=True):
     return all_calib_pars
 
 
-def plot_impact(location=None, routine_coverage=None, plwh=None):
+def plot_impact(location=None, routine_coverage=None, discounting=False):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
@@ -57,47 +57,104 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
     set_font(size=20)
     location = location.replace(' ', '_')
     bigdf = sc.loadobj(f'{resfolder}/{location}_results.obj')
+    econdf = sc.loadobj(f'{resfolder}/{location}_econ.obj')
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 2020)[0]
     ye = sc.findinds(years, 2100)[0]
     yev  = sc.findinds(years, 2090)[0]
+    standard_le = 88.8
 
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
         summary_df = pd.DataFrame()
         plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == True)]
         df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == False)]
+
+        econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == False)].groupby('year')[
+                ['new_cancers', 'new_cancer_deaths']].sum()
+
+        econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == False)].groupby('year')[
+                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+        econdf_plwh_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == True)].groupby('year')[
+                ['new_cancers', 'new_cancer_deaths']].sum()
+
+        econdf_plwh_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == True)].groupby('year')[
+                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+
+        if discounting:
+            cancers = np.array([i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancers'].values)])
+            cancer_deaths = np.array(
+                [i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancer_deaths'].values)])
+            cancers_plwh = np.array([i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancers'].values)])
+            cancer_deaths_plwh = np.array(
+                [i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancer_deaths'].values)])
+        else:
+            cancers = econdf_cancers['new_cancers'].values
+            cancer_deaths = econdf_cancers['new_cancer_deaths'].values
+            cancers_plwh = econdf_plwh_cancers['new_cancers'].values
+            cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+
+        avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
+        avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
+        ca_years = avg_age_ca_death - avg_age_ca
+        yld = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years * cancers)
+        yll = np.sum((standard_le - avg_age_ca_death) * cancer_deaths)
+        dalys = yll + yld
+
+        avg_age_ca_death_plwh = np.mean(econdf_plwh_ages['av_age_cancer_deaths'])
+        avg_age_ca_plwh = np.mean(econdf_plwh_ages['av_age_cancers'])
+        ca_years_plwh = avg_age_ca_death_plwh - avg_age_ca_plwh
+        yld_plwh = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years_plwh * cancers_plwh)
+        yll_plwh = np.sum((standard_le - avg_age_ca_death_plwh) * cancer_deaths_plwh)
+        dalys_plwh = yll_plwh + yld_plwh
+
         summary_df['cancers_averted'] = [np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
         summary_df['cancer_deaths_averted'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
-        summary_df['cum_doses'] = [plwh_df['cum_doses'][yev] - df['cum_doses'][yev]]
+        summary_df['dalys_averted'] = [dalys - dalys_plwh]
+        summary_df['perc_cancers_averted'] = [
+            100*(np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye]))/
+            np.sum(np.array(df['cancers'])[ys:ye])]
+        summary_df['perc_cancer_deaths_averted'] = [
+            100*(np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye]))/
+            np.sum(np.array(df['cancer_deaths'])[ys:ye])]
+        summary_df['perc_dalys_averted'] = [100*(dalys - dalys_plwh)/dalys]
+
         summary_df['vx_coverage'] = routine_cov
         dfs += summary_df
 
     final_df = pd.concat(dfs)
 
-    final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['cum_doses']
     label_dict = {
         'cancers_averted': 'Cancers averted',
         'cancer_deaths_averted': 'Cancer deaths averted',
-        'deaths_averted_FVP': 'Deaths averted per 1,000 FVP'
-    }
-    fig, axes = pl.subplots(3, 1, figsize=(12, 12), sharex=True)
-    for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'deaths_averted_FVP']):
+        'dalys_averted': 'DALYs averted',
+        'perc_cancers_averted': 'Percent cancers averted',
+        'perc_cancer_deaths_averted': 'Percent cancer deaths averted',
+        'perc_dalys_averted': 'Percent DALYs averted'
 
+    }
+    fig, axes = pl.subplots(3, 2, figsize=(12, 12), sharex=True)
+    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancer_deaths_averted',
+               'perc_cancer_deaths_averted', 'dalys_averted','perc_dalys_averted',]
+
+    for i, ax in enumerate(axes.flatten()):
+        val = to_plot[i]
         df_pivot = pd.pivot_table(
             final_df,
             values=val,
             index="vx_coverage",
             # columns="plwh"
         )
-        df_pivot.plot(kind="bar", ax=axes[iv])
-        axes[iv].set_ylabel(label_dict[val])
-        axes[iv].get_legend().remove()
-        sc.SIticks(axes[iv])
+        df_pivot.plot(kind="bar", ax=ax)
+        ax.set_ylabel(label_dict[val])
+        ax.get_legend().remove()
+        sc.SIticks(ax)
 
-    axes[2].set_xlabel('Routine Vaccine Coverage')
-    axes[2].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    axes[2,0].set_xlabel('Routine Vaccine Coverage')
+    axes[2, 1].set_xlabel('Routine Vaccine Coverage')
+    axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
 
     fig.tight_layout()
     fig_name = f'{figfolder}/summary_{location}.png'

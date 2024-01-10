@@ -78,7 +78,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         ms_agent_ratio = 100,
         verbose        = 0.0,
         model_hiv      = True,
-        hiv_pars       = dict(rel_imm=dict( lt200=1,gt200=1))
+        hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1))
     )
 
 
@@ -90,6 +90,8 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     if not calib:
         if len(vx_intv):
             interventions += sp.get_vx_intvs(**vx_intv)
+
+        interventions += sp.get_screen_intvs(primary='hpv', screen_coverage=0.15, start_year=2020)
 
         if econ_analyzer:
             analyzers += an.econ_analyzer()

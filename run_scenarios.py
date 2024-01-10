@@ -196,7 +196,7 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0.2,0.4, 0.8, 1]
+        vx_coverage = [0.2,0.4, 0.8]
         plwh = [True, False]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
         ut.plot_impact(
             location=location,
             routine_coverage=[0.2, 0.4, 0.8],#, 1],
-            plwh = [True, False]
+            # plwh = [True, False]
         )
 
         ut.plot_ts(
