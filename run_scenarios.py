@@ -28,7 +28,7 @@ import hpvsim as hpv
 # Imports from this repository
 import run_sim as rs
 import utils as ut
-import pars_scenarios as sp
+import analyzers as an
 
 # Comment out to not run
 to_run = [
@@ -101,11 +101,26 @@ def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # I
     sc.heading(f'Running {len(ikw)} scenario sims...')
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
-    kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location)
+    kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
+                  econ_analyzer=True)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
     sims = np.empty((len(vx_coverage), len(plwh), n_seeds), dtype=object)
+    econdfs = sc.autolist()
+    for sim in all_sims:  # Unflatten array
+        i_sc, i_vx, i_s = sim.meta.inds
+        sims[i_sc, i_vx, i_s] = sim
+        if i_s == 0:
+            econdf = sim.get_analyzer(an.econ_analyzer).df
+            econdf['location'] = location
+            econdf['seed'] = i_s
+            econdf['vx_coverage'] = sim.meta.vals['vx_coverage']
+            econdf['plwh'] = sim.meta.vals['plwh']
+            econdfs += econdf
+        sim['analyzers'] = []  # Remove the analyzer so we don't need to reduce it
+    econ_df = pd.concat(econdfs)
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_econ.obj', econ_df)
 
     for sim in all_sims:  # Unflatten array
         i_r,i_pl, i_s = sim.meta.inds
@@ -159,8 +174,8 @@ def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # I
         dfs += df
 
     alldf = pd.concat(dfs)
-    location = location.replace(' ', '_')
-    sc.saveobj(f'{ut.resfolder}/{location}_results.obj', alldf)
+
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_results.obj', alldf)
 
     return alldf, msims
 

@@ -61,7 +61,7 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 2020)[0]
     ye = sc.findinds(years, 2100)[0]
-    yev  = sc.findinds(years, 2050)[0]
+    yev  = sc.findinds(years, 2090)[0]
 
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
@@ -77,8 +77,12 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
     final_df = pd.concat(dfs)
 
     final_df['deaths_averted_FVP'] = 1000*final_df['cancer_deaths_averted']/final_df['cum_doses']
-
-    fig, axes = pl.subplots(3, 1, figsize=(12, 12))
+    label_dict = {
+        'cancers_averted': 'Cancers averted',
+        'cancer_deaths_averted': 'Cancer deaths averted',
+        'deaths_averted_FVP': 'Deaths averted per 1,000 FVP'
+    }
+    fig, axes = pl.subplots(3, 1, figsize=(12, 12), sharex=True)
     for iv, val in enumerate(['cancers_averted', 'cancer_deaths_averted', 'deaths_averted_FVP']):
 
         df_pivot = pd.pivot_table(
@@ -88,10 +92,12 @@ def plot_impact(location=None, routine_coverage=None, plwh=None):
             # columns="plwh"
         )
         df_pivot.plot(kind="bar", ax=axes[iv])
-        axes[iv].set_xlabel('Vaccine Coverage')
-        axes[iv].set_ylabel(val)
-        axes[iv].set_xticklabels(['0%', '40%', '80%'], rotation=0)
+        axes[iv].set_ylabel(label_dict[val])
+        axes[iv].get_legend().remove()
         sc.SIticks(axes[iv])
+
+    axes[2].set_xlabel('Routine Vaccine Coverage')
+    axes[2].set_xticklabels(['20%', '40%', '80%'], rotation=0)
 
     fig.tight_layout()
     fig_name = f'{figfolder}/summary_{location}.png'
@@ -193,7 +199,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None):
 
 
     fig, axes = pl.subplots(2, 1, figsize=(12, 12))
-    for iv, val in enumerate(['cancers', 'asr_cancer_incidence']):
+    for iv, val in enumerate(['cancers', 'cancer_deaths']):
         for ir, routine_cov in enumerate(routine_coverage):
             for ip, plwh_scen in enumerate(plwh):
                 df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen)]
@@ -213,7 +219,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None):
 
 
         axes[iv].set_title(val)
-    axes[0].legend(title='Vaccine coverage')
+    axes[0].legend(title='Routine vaccine coverage')
     axes[1].legend(title='Vaccinate WLWH')
     sc.SIticks(axes[0])
     sc.SIticks(axes[1])
