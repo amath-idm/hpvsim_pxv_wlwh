@@ -8,13 +8,12 @@ import sciris as sc
 import hpvsim as hpv
 
 
-
 class econ_analyzer(hpv.Analyzer):
     '''
     Analyzer for feeding into costing/health economic analysis.
-    
+
     Produces a dataframe by year storing:
-        
+
         - Resource use: number of vaccines, screens, lesions treated, cancers treated
         - Cases/deaths: number of new cancer cases and cancer deaths
         - Average age of new cases, average age of deaths, average age of noncancer death
@@ -22,70 +21,43 @@ class econ_analyzer(hpv.Analyzer):
 
     def __init__(self, start=2020, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.start=start
+        self.start = start
         return
-
 
     def initialize(self, sim):
         super().initialize(sim)
-        columns = ['new_hpv_screens', 'new_poc_hpv_screens', 'new_ave_screens', 'new_via_screens',
-                   'new_thermal_ablations', 'new_leeps', 'new_cancer_treatments',
+        columns = ['new_vaccinations'
                    'new_cancers', 'new_cancer_deaths', 'new_other_deaths',
                    'av_age_cancers', 'av_age_cancer_deaths', 'av_age_other_deaths']
-        self.si = sc.findinds(sim.res_yearvec,self.start)[0]
+        self.si = sc.findinds(sim.res_yearvec, self.start)[0]
         self.df = pd.DataFrame(0.0, index=pd.Index(sim.res_yearvec[self.si:], name='year'), columns=columns)
         return
 
-
     def apply(self, sim):
-        if sim.yearvec[sim.t]>=self.start:
+        if sim.yearvec[sim.t] >= self.start:
             ppl = sim.people
+
             def av_age(arr):
-                if len(hpv.true(arr)): return np.mean(sim.people.age[hpv.true(arr)])
-                else: return np.nan
+                if len(hpv.true(arr)):
+                    return np.mean(sim.people.age[hpv.true(arr)])
+                else:
+                    return np.nan
+
             li = np.floor(sim.yearvec[sim.t])
-            ltt = int((sim.t-1)*sim['dt']) # this is the timestep number vs year of sim, needed to retrieve outcomes from interventions
-            lt = (sim.t-1)
+            ltt = int((sim.t - 1) * sim[
+                'dt'])  # this is the timestep number vs year of sim, needed to retrieve outcomes from interventions
+            lt = (sim.t - 1)
 
             # Pull out characteristics of sim to decide what resources we need
             simvals = sim.meta.vals
-            scen_label = simvals.scen_label
-            if scen_label != 'No screening':
-                if 'POC-HPV' in scen_label:
-                    primary_screen='hpv'
-                elif 'HPV' in scen_label:
-                    primary_screen='hpv'
-                if 'AVE' in scen_label:
-                    if '+AVE' in scen_label:
-                        triage_screen='ave'
-                        triage=True
-                    else:
-                        primary_screen='ave'
-                        triage=False
-                elif 'VIA' in scen_label:
-                    if '+VIA' in scen_label:
-                        triage_screen='via'
-                        triage=True
-                    else:
-                        primary_screen='via'
-                        triage=False
-                else:
-                    triage=False
+            pxv = simvals.plwh
+            # Resources
+            self.df.loc[li].new_vaccinations += sim.get_intervention('Routine vx').n_products_used.values[ltt]
+            self.df.loc[li].new_vaccinations += sim.get_intervention('Catchup vx').n_products_used.values[ltt]
 
-                resource_dict = {
-                    'hpv': 'new_hpv_screens',
-                    'poc_hpv': 'new_poc_hpv_screens',
-                    'ave': 'new_ave_screens',
-                    'via': 'new_via_screens'
-                }
-                # Resources
-                self.df.loc[li][resource_dict[primary_screen]] += sim.get_intervention('screening').n_products_used.values[ltt]
-                if triage:
-                    self.df.loc[li][resource_dict[triage_screen]] += sim.get_intervention('triage').n_products_used.values[ltt]
-
-                self.df.loc[li].new_thermal_ablations += sim.get_intervention('ablation').n_products_used.values[ltt]
-                self.df.loc[li].new_leeps += sim.get_intervention('excision').n_products_used.values[ltt]
-                self.df.loc[li].new_cancer_treatments += sim.get_intervention('radiation').n_products_used.values[ltt]
+            if pxv:
+                self.df.loc[li].new_vaccinations += sim.get_intervention('PxV for PLWH').n_products_used.values[
+                        ltt]
 
             # Age outputs
             self.df.loc[li].av_age_other_deaths = av_age(ppl.date_dead_other == lt)
@@ -93,11 +65,10 @@ class econ_analyzer(hpv.Analyzer):
             self.df.loc[li].av_age_cancers = av_age(ppl.date_cancerous == lt)
         return
 
-
     def finalize(self, sim):
         # Add in results that are already generated (NB, these have all been scaled already)
-        self.df['new_cancers'] = sim.results['total_cancers'][self.si:]
-        self.df['new_cancer_deaths'] = sim.results['total_cancer_deaths'][self.si:]
+        self.df['new_cancers'] = sim.results['cancers'][self.si:]
+        self.df['new_cancer_deaths'] = sim.results['cancer_deaths'][self.si:]
         self.df['new_other_deaths'] = sim.results['other_deaths'][self.si:]
         return
 
