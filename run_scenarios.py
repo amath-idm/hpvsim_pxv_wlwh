@@ -79,7 +79,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
     # Set up iteration arguments
     ikw = []
     count = 0
-    n_sims = len(vx_coverage) * len(plwh) * n_seeds
+    n_sims = len(vx_coverage) * len(plwh) * len(rel_imm) * n_seeds
 
     for i_r, routine_cov in enumerate(vx_coverage):
         for i_pl, plwh_scen in enumerate(plwh):
@@ -108,7 +108,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
-    sims = np.empty((len(vx_coverage), len(plwh), n_seeds), dtype=object)
+    sims = np.empty((len(vx_coverage), len(plwh), len(rel_imm), n_seeds), dtype=object)
     econdfs = sc.autolist()
     for sim in all_sims:  # Unflatten array
         i_r, i_pl, i_ri, i_s = sim.meta.inds
