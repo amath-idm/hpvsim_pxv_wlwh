@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -50,11 +50,12 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     msim = hpv.MultiSim(sims)
     msim.reduce(use_mean=use_mean)
-    i_r, i_pl, i_s = sims[0].meta.inds
+    i_r, i_pl, i_ri, i_s = sims[0].meta.inds
     for s, sim in enumerate(sims):  # Check that everything except seed matches
         assert i_r == sim.meta.inds[0]
         assert i_pl == sim.meta.inds[1]
-        assert (s == 0) or i_s != sim.meta.inds[2]
+        assert i_ri == sim.meta.inds[2]
+        assert (s == 0) or i_s != sim.meta.inds[3]
     msim.meta = sc.objdict()
     msim.meta.inds = [i_r, i_pl]
     msim.meta.vals = sc.dcp(sims[0].meta.vals)
@@ -68,7 +69,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # Input data
+def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_filestem='', # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -82,20 +83,21 @@ def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # I
 
     for i_r, routine_cov in enumerate(vx_coverage):
         for i_pl, plwh_scen in enumerate(plwh):
-            for i_s in range(n_seeds):  # n seeds
-                count += 1
-                meta = sc.objdict()
-                meta.count = count
-                meta.n_sims = n_sims
-                meta.inds = [i_r, i_pl, i_s]
-                vx_scen_dict = dict(
-                    vx_coverage=routine_cov,
-                    plwh=plwh_scen
-                )
-                meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, vx_coverage=routine_cov,
-                                                                        plwh=plwh_scen)))
-                ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
-                ikw[-1].meta = meta                
+            for i_ri, rel_imm_scen in enumerate(rel_imm):
+                for i_s in range(n_seeds):  # n seeds
+                    count += 1
+                    meta = sc.objdict()
+                    meta.count = count
+                    meta.n_sims = n_sims
+                    meta.inds = [i_r, i_pl, i_ri, i_s]
+                    vx_scen_dict = dict(
+                        vx_coverage=routine_cov,
+                        plwh=plwh_scen
+                    )
+                    meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, vx_coverage=routine_cov,
+                                                                            plwh=plwh_scen, rel_imm=rel_imm_scen)))
+                    ikw.append(sc.objdict(vx_intv=vx_scen_dict, rel_imm_lt200=rel_imm_scen, seed=i_s))
+                    ikw[-1].meta = meta
 
     # Actually run
     sc.heading(f'Running {len(ikw)} scenario sims...')
@@ -109,40 +111,42 @@ def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # I
     sims = np.empty((len(vx_coverage), len(plwh), n_seeds), dtype=object)
     econdfs = sc.autolist()
     for sim in all_sims:  # Unflatten array
-        i_sc, i_vx, i_s = sim.meta.inds
-        sims[i_sc, i_vx, i_s] = sim
+        i_r, i_pl, i_ri, i_s = sim.meta.inds
+        sims[i_r, i_pl, i_ri, i_s] = sim
         if i_s == 0:
             econdf = sim.get_analyzer(an.econ_analyzer).df
             econdf['location'] = location
             econdf['seed'] = i_s
             econdf['vx_coverage'] = sim.meta.vals['vx_coverage']
             econdf['plwh'] = sim.meta.vals['plwh']
+            econdf['rel_imm'] = sim.meta.vals['rel_imm']
             econdfs += econdf
         sim['analyzers'] = []  # Remove the analyzer so we don't need to reduce it
     econ_df = pd.concat(econdfs)
     sc.saveobj(f'{ut.resfolder}/{dflocation}_econ.obj', econ_df)
 
     for sim in all_sims:  # Unflatten array
-        i_r,i_pl, i_s = sim.meta.inds
-        sims[i_r,i_pl, i_s] = sim
+        i_r, i_pl, i_ri, i_s = sim.meta.inds
+        sims[i_r, i_pl, i_ri, i_s] = sim
 
     # Prepare to convert sims to msims
     all_sims_for_multi = []
     for i_r in range(len(vx_coverage)):
         for i_pl in range(len(plwh)):
-            sim_seeds = sims[i_r, i_pl, :].tolist()
-            all_sims_for_multi.append(sim_seeds)
+            for i_ri in range(len(rel_imm)):
+                sim_seeds = sims[i_r, i_pl, i_ri, :].tolist()
+                all_sims_for_multi.append(sim_seeds)
                 
 
     # Convert sims to msims
-    msims = np.empty((len(vx_coverage), len(plwh)), dtype=object)
+    msims = np.empty((len(vx_coverage), len(plwh), len(rel_imm)), dtype=object)
     all_msims = sc.parallelize(make_msims, iterarg=all_sims_for_multi)
 
     # Now strip out all the results and place them in a dataframe
     dfs = sc.autolist()
     for msim in all_msims:
-        i_r, i_pl = msim.meta.inds
-        msims[i_r, i_pl] = msim
+        i_r, i_pl, i_ri = msim.meta.inds
+        msims[i_r, i_pl, i_ri] = msim
         df = pd.DataFrame()
         df['year']                      = msim.results['year']
         df['cancers']                   = msim.results['cancers'][:] # TODO: process in a loop
@@ -171,6 +175,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, calib_filestem='', # I
         # Store metadata about run #TODO: fix this
         df['vx_coverage'] = msim.meta.vals['vx_coverage']
         df['plwh'] = msim.meta.vals['plwh']
+        df['rel_imm'] = msim.meta.vals['rel_imm']
         dfs += df
 
     alldf = pd.concat(dfs)
@@ -196,10 +201,11 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0.2,0.4, 0.8]
+        vx_coverage = [0.2, 0.4, 0.8]
         plwh = [True, False]
+        rel_imm = [1, 0.75, 0.5]
 
-        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, n_seeds=n_seeds, location=location, 
+        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
                                  debug=debug, calib_filestem='_jan3')
 
 

@@ -46,7 +46,7 @@ save_plots = True
 
 #%% Simulation creation functions
 def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
-        art_datafile=None, vx_intv=None, econ_analyzer=False, analyzer=None, end=None, seed=1):
+        art_datafile=None, vx_intv=None, rel_imm_lt200=0.5, econ_analyzer=False, analyzer=None, end=None, seed=1):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
@@ -78,7 +78,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         ms_agent_ratio = 100,
         verbose        = 0.0,
         model_hiv      = True,
-        hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1))
+        hiv_pars       = dict(rel_imm=dict(lt200=rel_imm_lt200,gt200=1))
     )
 
 
@@ -190,7 +190,8 @@ if __name__ == '__main__':
                    vx_intv=[],
                    hiv_datafile=hiv_datafile,
                    art_datafile=art_datafile,
-                   end=2021
+                   end=2021,
+                   n_agents=50e3
                    )
 
     sim.run()
