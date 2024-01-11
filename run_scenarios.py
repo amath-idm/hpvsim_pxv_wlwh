@@ -57,7 +57,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
         assert i_ri == sim.meta.inds[2]
         assert (s == 0) or i_s != sim.meta.inds[3]
     msim.meta = sc.objdict()
-    msim.meta.inds = [i_r, i_pl]
+    msim.meta.inds = [i_r, i_pl, i_ri]
     msim.meta.vals = sc.dcp(sims[0].meta.vals)
     msim.meta.vals.pop('seed')
 
