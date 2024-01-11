@@ -24,8 +24,8 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
@@ -63,18 +63,19 @@ def make_priors():
 
 def run_calib(location=None, n_trials=None, n_workers=None,
               do_plot=False, do_save=True, filestem=''):
+    dflocation=location.replace(" ", "_")
     if location == 'south africa':
-        hiv_datafile = f'data/hiv_incidence_{location.replace(" ", "_")}.csv'
-        art_datafile = f'data/art_coverage_{location.replace(" ", "_")}.csv'
+        hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
+        art_datafile = f'data/art_coverage_{dflocation}.csv'
     else:
         hiv_datafile = None
         art_datafile = None
 
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
-        f'data/{location.replace(" ", "_")}_cancer_cases.csv',
-        f'data/{location.replace(" ", "_")}_cin_types.csv',
-        f'data/{location.replace(" ", "_")}_cancer_types.csv',
+        f'data/{dflocation}_cancer_cases.csv',
+        f'data/{dflocation}_cin_types.csv',
+        f'data/{dflocation}_cancer_types.csv',
     ]
 
     # Define the calibration parameters
@@ -113,10 +114,21 @@ def run_calib(location=None, n_trials=None, n_workers=None,
 
     genotype_pars = make_priors()
 
+    hiv_pars = dict(
+        rel_sus=dict(
+            lt200=[2.2, 2, 4],
+            gt200=[2.2, 2, 4]
+        ),
+        rel_sev=dict(
+            lt200=[1.5, 1.25, 4],
+            gt200=[1.5, 1.25, 4]
+        )
+    )
+
     # Save some extra sim results
     extra_sim_result_keys = ['cancers', 'cancer_incidence', 'asr_cancer_incidence']
 
-    calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars,
+    calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars, hiv_pars=hiv_pars,
                             name=f'{location}_calib_final',
                             datafiles=datafiles,
                             extra_sim_result_keys=extra_sim_result_keys,
@@ -168,7 +180,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan3'
+        filestem = '_jan10'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
