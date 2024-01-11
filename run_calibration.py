@@ -31,7 +31,7 @@ debug = False  # If True, this will do smaller runs that can be run locally for 
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [8000, 10][debug]  # How many trials to run for calibration
+n_trials = [5000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -42,9 +42,9 @@ storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage fo
 def make_priors():
     default = dict(
         rel_beta=[0.9, 0.8, 1.2, 0.05],
-        cancer_fn=dict(ld50=[20, 15, 30, 0.5]),
-        dur_cin=dict(par1=[7, 3, 12, 0.1],
-                     par2=[15, 10, 25, 0.5])
+        cancer_fn=dict(ld50=[25, 15, 30, 0.5]),
+        dur_cin=dict(par1=[10, 3, 15, 0.1],
+                     par2=[20, 10, 25, 0.5])
     )
 
     genotype_pars = dict(
@@ -52,9 +52,9 @@ def make_priors():
         hi5=sc.dcp(default),
         ohr=sc.dcp(default),
         hpv16=dict(
-            cancer_fn=dict(ld50=[20, 15, 30, 0.5]),
+            cancer_fn=dict(ld50=[15, 10, 30, 1]),
             dur_cin=dict(par1=[7, 3, 12, 0.1],
-                         par2=[15, 10, 25, 0.5])
+                         par2=[20, 10, 25, 0.5])
         ),
     )
 
@@ -80,12 +80,12 @@ def run_calib(location=None, n_trials=None, n_workers=None,
 
     # Define the calibration parameters
     calib_pars = dict(
-        beta=[0.06, 0.02, 0.5, 0.02],
+        beta=[0.05, 0.02, 0.5, 0.02],
         own_imm_hr=[0.5, 0.25, 1, 0.05],
-        age_risk=dict(risk=[1, 1, 4, 0.1],
-                      age=[30, 30, 45, 1]),
+        age_risk=dict(risk=[3.2, 1, 4, 0.1],
+                      age=[38, 30, 45, 1]),
         sev_dist=dict(par1=[1, 1, 2, 0.1]),
-        cell_imm_init=dict(par1=[0.5, 0.2, 0.8, 0.05]),
+        cell_imm_init=dict(par1=[0.2, 0.2, 0.8, 0.05]),
     )
 
     if location is None:
@@ -103,11 +103,11 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         sexual_behavior_pars = dict(
             m_cross_layer=[0.3, 0.1, 0.7, 0.05],
             m_partners=dict(
-                c=dict(par1=[0.2, 0.1, 0.6, 0.02])
+                c=dict(par1=[0.5, 0.1, 0.6, 0.05])
             ),
-            f_cross_layer=[0.1, 0.05, 0.5, 0.05],
+            f_cross_layer=[0.4, 0.05, 0.7, 0.05],
             f_partners=dict(
-                c=dict(par1=[0.2, 0.1, 0.6, 0.02])
+                c=dict(par1=[0.2, 0.1, 0.6, 0.05])
             )
         )
     calib_pars = sc.mergedicts(calib_pars, sexual_behavior_pars)
@@ -180,7 +180,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan10'
+        filestem = '_jan11'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)

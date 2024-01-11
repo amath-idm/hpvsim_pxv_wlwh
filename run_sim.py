@@ -45,7 +45,7 @@ save_plots = True
 
 
 #%% Simulation creation functions
-def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None,
+def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
         art_datafile=None, vx_intv=None, econ_analyzer=False, analyzer=None, end=None, seed=1):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
@@ -55,7 +55,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
     # Parameters
     pars = dict(
-        n_agents       = [50e3,1e3][debug],
+        n_agents       = [n_agents,1e3][debug],
         dt             = [0.25,1.0][debug],
         start          = [1950,1980][debug],
         end            = end,
