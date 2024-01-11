@@ -31,7 +31,7 @@ debug = False  # If True, this will do smaller runs that can be run locally for 
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [5000, 10][debug]  # How many trials to run for calibration
+n_trials = [8000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -116,11 +116,11 @@ def run_calib(location=None, n_trials=None, n_workers=None,
 
     hiv_pars = dict(
         rel_sus=dict(
-            lt200=[2.2, 2, 4],
+            lt200=[2.2, 2, 5],
             gt200=[2.2, 2, 4]
         ),
         rel_sev=dict(
-            lt200=[1.5, 1.25, 4],
+            lt200=[1.5, 1.25, 5],
             gt200=[1.5, 1.25, 4]
         )
     )
@@ -180,7 +180,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan11'
+        filestem = '_jan11_v2'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
