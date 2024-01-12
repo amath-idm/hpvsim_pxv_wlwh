@@ -49,7 +49,7 @@ def process_country_files(locations, top_results=100, do_save=True):
     return all_calib_pars
 
 
-def plot_impact(location=None, routine_coverage=None, discounting=False):
+def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=False):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
@@ -67,61 +67,63 @@ def plot_impact(location=None, routine_coverage=None, discounting=False):
 
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
-        summary_df = pd.DataFrame()
-        plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == True)]
-        df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == False)]
+        for rel_imm_scen in rel_imm:
+            summary_df = pd.DataFrame()
+            plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == True)]
+            df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == False)]
 
-        econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == False)].groupby('year')[
-                ['new_cancers', 'new_cancer_deaths']].sum()
+            econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == False)].groupby('year')[
+                    ['new_cancers', 'new_cancer_deaths']].sum()
 
-        econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == False)].groupby('year')[
-                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
-        econdf_plwh_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == True)].groupby('year')[
-                ['new_cancers', 'new_cancer_deaths']].sum()
+            econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == False)].groupby('year')[
+                    ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+            econdf_plwh_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby('year')[
+                    ['new_cancers', 'new_cancer_deaths']].sum()
 
-        econdf_plwh_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.plwh == True)].groupby('year')[
-                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+            econdf_plwh_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby('year')[
+                    ['av_age_cancer_deaths', 'av_age_cancers']].mean()
 
-        if discounting:
-            cancers = np.array([i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancers'].values)])
-            cancer_deaths = np.array(
-                [i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancer_deaths'].values)])
-            cancers_plwh = np.array([i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancers'].values)])
-            cancer_deaths_plwh = np.array(
-                [i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancer_deaths'].values)])
-        else:
-            cancers = econdf_cancers['new_cancers'].values
-            cancer_deaths = econdf_cancers['new_cancer_deaths'].values
-            cancers_plwh = econdf_plwh_cancers['new_cancers'].values
-            cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+            if discounting:
+                cancers = np.array([i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancers'].values)])
+                cancer_deaths = np.array(
+                    [i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancer_deaths'].values)])
+                cancers_plwh = np.array([i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancers'].values)])
+                cancer_deaths_plwh = np.array(
+                    [i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancer_deaths'].values)])
+            else:
+                cancers = econdf_cancers['new_cancers'].values
+                cancer_deaths = econdf_cancers['new_cancer_deaths'].values
+                cancers_plwh = econdf_plwh_cancers['new_cancers'].values
+                cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
 
-        avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
-        avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
-        ca_years = avg_age_ca_death - avg_age_ca
-        yld = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years * cancers)
-        yll = np.sum((standard_le - avg_age_ca_death) * cancer_deaths)
-        dalys = yll + yld
+            avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
+            avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
+            ca_years = avg_age_ca_death - avg_age_ca
+            yld = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years * cancers)
+            yll = np.sum((standard_le - avg_age_ca_death) * cancer_deaths)
+            dalys = yll + yld
 
-        avg_age_ca_death_plwh = np.mean(econdf_plwh_ages['av_age_cancer_deaths'])
-        avg_age_ca_plwh = np.mean(econdf_plwh_ages['av_age_cancers'])
-        ca_years_plwh = avg_age_ca_death_plwh - avg_age_ca_plwh
-        yld_plwh = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years_plwh * cancers_plwh)
-        yll_plwh = np.sum((standard_le - avg_age_ca_death_plwh) * cancer_deaths_plwh)
-        dalys_plwh = yll_plwh + yld_plwh
+            avg_age_ca_death_plwh = np.mean(econdf_plwh_ages['av_age_cancer_deaths'])
+            avg_age_ca_plwh = np.mean(econdf_plwh_ages['av_age_cancers'])
+            ca_years_plwh = avg_age_ca_death_plwh - avg_age_ca_plwh
+            yld_plwh = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years_plwh * cancers_plwh)
+            yll_plwh = np.sum((standard_le - avg_age_ca_death_plwh) * cancer_deaths_plwh)
+            dalys_plwh = yll_plwh + yld_plwh
 
-        summary_df['cancers_averted'] = [np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
-        summary_df['cancer_deaths_averted'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
-        summary_df['dalys_averted'] = [dalys - dalys_plwh]
-        summary_df['perc_cancers_averted'] = [
-            100*(np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye]))/
-            np.sum(np.array(df['cancers'])[ys:ye])]
-        summary_df['perc_cancer_deaths_averted'] = [
-            100*(np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye]))/
-            np.sum(np.array(df['cancer_deaths'])[ys:ye])]
-        summary_df['perc_dalys_averted'] = [100*(dalys - dalys_plwh)/dalys]
+            summary_df['cancers_averted'] = [np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
+            summary_df['cancer_deaths_averted'] = [np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
+            summary_df['dalys_averted'] = [dalys - dalys_plwh]
+            summary_df['perc_cancers_averted'] = [
+                100*(np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye]))/
+                np.sum(np.array(df['cancers'])[ys:ye])]
+            summary_df['perc_cancer_deaths_averted'] = [
+                100*(np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye]))/
+                np.sum(np.array(df['cancer_deaths'])[ys:ye])]
+            summary_df['perc_dalys_averted'] = [100*(dalys - dalys_plwh)/dalys]
 
-        summary_df['vx_coverage'] = routine_cov
-        dfs += summary_df
+            summary_df['vx_coverage'] = routine_cov
+            summary_df['rel_imm'] = rel_imm_scen
+            dfs += summary_df
 
     final_df = pd.concat(dfs)
 
@@ -144,7 +146,7 @@ def plot_impact(location=None, routine_coverage=None, discounting=False):
             final_df,
             values=val,
             index="vx_coverage",
-            # columns="plwh"
+            columns="rel_imm"
         )
         df_pivot.plot(kind="bar", ax=ax)
         ax.set_ylabel(label_dict[val])

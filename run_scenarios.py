@@ -92,11 +92,12 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
                     meta.inds = [i_r, i_pl, i_ri, i_s]
                     vx_scen_dict = dict(
                         vx_coverage=routine_cov,
-                        plwh=plwh_scen
+                        plwh=plwh_scen,
+                        rel_imm_lt200=rel_imm_scen,
                     )
                     meta.vals = sc.objdict(sc.mergedicts(vx_scen_dict, dict(seed=i_s, vx_coverage=routine_cov,
                                                                             plwh=plwh_scen, rel_imm=rel_imm_scen)))
-                    ikw.append(sc.objdict(vx_intv=vx_scen_dict, rel_imm_lt200=rel_imm_scen, seed=i_s))
+                    ikw.append(sc.objdict(vx_intv=vx_scen_dict, seed=i_s))
                     ikw[-1].meta = meta
 
     # Actually run
@@ -224,6 +225,7 @@ if __name__ == '__main__':
         ut.plot_impact(
             location=location,
             routine_coverage=[0.2, 0.4, 0.8],#, 1],
+            rel_imm=[1, 0.75, 0.5]
             # plwh = [True, False]
         )
 
