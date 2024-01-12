@@ -200,8 +200,8 @@ if __name__ == '__main__':
     import matplotlib.pylab as pl
 
     fig, ax = pl.subplots()
-    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancers_by_age_with_hiv'][:,-1], label='HIV positive')
-    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancers_by_age_no_hiv'][:, -1], label='HIV negative')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_with_hiv'][:,-2], label='HIV positive')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_no_hiv'][:, -2], label='HIV negative')
     ax.legend()
     fig.show()
 

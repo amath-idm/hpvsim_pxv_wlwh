@@ -150,7 +150,8 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
         )
         df_pivot.plot(kind="bar", ax=ax)
         ax.set_ylabel(label_dict[val])
-        ax.get_legend().remove()
+        if i>0:
+            ax.get_legend().remove()
         sc.SIticks(ax)
 
     axes[2,0].set_xlabel('Routine Vaccine Coverage')
