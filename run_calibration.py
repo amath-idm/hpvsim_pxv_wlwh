@@ -31,7 +31,7 @@ debug = False  # If True, this will do smaller runs that can be run locally for 
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [8000, 10][debug]  # How many trials to run for calibration
+n_trials = [4000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -74,10 +74,10 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv',
-        f'data/{dflocation}_cin_types.csv',
-        f'data/{dflocation}_cancer_types.csv',
         f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv',
         f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv',
+        f'data/{dflocation}_cin_types.csv',
+        f'data/{dflocation}_cancer_types.csv',
     ]
 
     # Define the calibration parameters
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan11'
+            filestem = '_jan12'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
     T.toc('Done')
