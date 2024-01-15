@@ -43,7 +43,7 @@ def make_priors():
     default = dict(
         rel_beta=[0.9, 0.8, 1.2, 0.05],
         cancer_fn=dict(ld50=[25, 15, 30, 0.5]),
-        dur_cin=dict(par1=[10, 3, 15, 0.1],
+        dur_cin=dict(par1=[10, 5, 20, 0.1],
                      par2=[20, 10, 25, 0.5])
     )
 
@@ -53,7 +53,7 @@ def make_priors():
         ohr=sc.dcp(default),
         hpv16=dict(
             cancer_fn=dict(ld50=[15, 10, 30, 1]),
-            dur_cin=dict(par1=[7, 3, 12, 0.1],
+            dur_cin=dict(par1=[12, 6, 20, 0.1],
                          par2=[20, 10, 25, 0.5])
         ),
     )
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan3'
+            filestem = '_jan15'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
     T.toc('Done')
