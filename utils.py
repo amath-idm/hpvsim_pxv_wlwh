@@ -49,15 +49,15 @@ def process_country_files(locations, top_results=100, do_save=True):
     return all_calib_pars
 
 
-def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=False):
+def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=False, filestem=''):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
 
     set_font(size=20)
     location = location.replace(' ', '_')
-    bigdf = sc.loadobj(f'{resfolder}/{location}_results.obj')
-    econdf = sc.loadobj(f'{resfolder}/{location}_econ.obj')
+    bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
+    econdf = sc.loadobj(f'{resfolder}/{location}_econ{filestem}.obj')
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 2020)[0]
@@ -241,14 +241,14 @@ def make_msims_sweeps(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def plot_ts(location=None, routine_coverage=None, plwh=None):
+def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
 
     set_font(size=20)
     location = location.replace(' ', '_')
-    bigdf = sc.loadobj(f'{resfolder}/{location}_results.obj')
+    bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 2010)[0]
@@ -262,7 +262,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None):
     for iv, val in enumerate(['cancers', 'cancer_deaths']):
         for ir, routine_cov in enumerate(routine_coverage):
             for ip, plwh_scen in enumerate(plwh):
-                df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen)]
+                df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen) & bigdf.rel_imm == 1]
                 years = np.array(df['year'])[ys:ye]
                 result = np.array(df[val])[ys:ye]
                 low = np.array(df[f'{val}_low'])[ys:ye]

@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    'run_scenarios',
-    # 'plot_scenarios',
+    # 'run_scenarios',
+    'plot_scenarios',
 
 ]
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         rel_imm = [1, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan12')
+                                 debug=debug, calib_filestem='_jan3')
 
 
     # Plot results of scenarios
@@ -222,16 +222,18 @@ if __name__ == '__main__':
         #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
         # )
 
-        ut.plot_impact(
-            location=location,
-            routine_coverage=[0.2, 0.4, 0.8],
-            rel_imm=[1, 0.75, 0.5]
-        )
+        # ut.plot_impact(
+        #     location=location,
+        #     routine_coverage=[0.2, 0.4, 0.8],
+        #     rel_imm=[1, 0.75, 0.5],
+        #     filestem='_jan3'
+        # )
 
         ut.plot_ts(
             location=location,
             routine_coverage=[0.2, 0.4, 0.8],
-            plwh=[True, False]
+            plwh=[True, False],
+            filestem='_jan3'
         )
 
 
