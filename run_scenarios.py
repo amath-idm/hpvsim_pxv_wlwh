@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    'run_scenarios',
-    # 'plot_scenarios',
+    # 'run_scenarios',
+    'plot_scenarios',
 
 ]
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0.2, 0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan3'
+            filestem=''
         )
 
 
