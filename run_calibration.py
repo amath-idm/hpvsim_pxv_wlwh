@@ -88,6 +88,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
                       age=[38, 30, 45, 1]),
         sev_dist=dict(par1=[1, 1, 2, 0.1]),
         cell_imm_init=dict(par1=[0.2, 0.2, 0.8, 0.05]),
+        hpv_control_prob=[0,0,1, 0.25],
+        hpv_reactivation=[0.025, 0, 0.1, 0.025]
     )
 
     if location is None:
@@ -118,20 +120,21 @@ def run_calib(location=None, n_trials=None, n_workers=None,
 
     hiv_pars = dict(
         rel_sus=dict(
-            lt200=[2.2, 2, 5],
-            gt200=[2.2, 2, 4]
+            lt200=[2.25, 2, 5, 0.25],
+            gt200=[2.25, 2, 4, 0.25]
         ),
         rel_sev=dict(
-            lt200=[1.5, 1.25, 5],
-            gt200=[1.5, 1.25, 4]
-        )
+            lt200=[1.5, 1.25, 5, 0.25],
+            gt200=[1.5, 1.25, 4, 0.25]
+        ),
+        rel_reactivation_prob=[3, 2, 5, 0.5]
     )
 
     # Save some extra sim results
     extra_sim_result_keys = ['cancers', 'cancer_incidence', 'asr_cancer_incidence']
 
     calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars,
-                            # hiv_pars=hiv_pars,
+                            hiv_pars=hiv_pars,
                             name=f'{location}_calib_final',
                             datafiles=datafiles,
                             extra_sim_result_keys=extra_sim_result_keys,
@@ -192,7 +195,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan15'
+            filestem = '_jan16'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
     T.toc('Done')
