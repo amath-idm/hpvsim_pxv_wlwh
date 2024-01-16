@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -124,7 +124,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
             econdfs += econdf
         sim['analyzers'] = []  # Remove the analyzer so we don't need to reduce it
     econ_df = pd.concat(econdfs)
-    sc.saveobj(f'{ut.resfolder}/{dflocation}_econ.obj', econ_df)
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_econ{calib_filestem}.obj', econ_df)
 
     for sim in all_sims:  # Unflatten array
         i_r, i_pl, i_ri, i_s = sim.meta.inds
@@ -181,7 +181,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
 
     alldf = pd.concat(dfs)
 
-    sc.saveobj(f'{ut.resfolder}/{dflocation}_results.obj', alldf)
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_results{calib_filestem}.obj', alldf)
 
     return alldf, msims
 
@@ -202,12 +202,12 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0.2, 0.4, 0.8]
+        vx_coverage = [0, 0.2, 0.4, 0.8]
         plwh = [True, False]
-        rel_imm = [1, 0.75, 0.5]
+        rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan3')
+                                 debug=debug, calib_filestem='_jan16')
 
 
     # Plot results of scenarios
