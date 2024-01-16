@@ -86,7 +86,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         own_imm_hr=[0.5, 0.25, 1, 0.05],
         age_risk=dict(risk=[3.2, 1, 4, 0.1],
                       age=[38, 30, 45, 1]),
-        # sev_dist=dict(par1=[1, 1, 2, 0.1]),
+        sev_dist=dict(par1=[1, 1, 2, 0.1]),
         cell_imm_init=dict(par1=[0.2, 0.2, 0.8, 0.05]),
     )
 
@@ -130,7 +130,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     # Save some extra sim results
     extra_sim_result_keys = ['cancers', 'cancer_incidence', 'asr_cancer_incidence']
 
-    calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars, hiv_pars=hiv_pars,
+    calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars,
+                            # hiv_pars=hiv_pars,
                             name=f'{location}_calib_final',
                             datafiles=datafiles,
                             extra_sim_result_keys=extra_sim_result_keys,
@@ -182,7 +183,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan15'
+        filestem = '_jan16'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)

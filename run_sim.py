@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
     T = sc.timer()
     location='south africa'
-    calib_filestem='_jan3'
+    calib_filestem='_jan15'
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
@@ -191,7 +191,7 @@ if __name__ == '__main__':
                    vx_intv=[],
                    hiv_datafile=hiv_datafile,
                    art_datafile=art_datafile,
-                   end=2021,
+                   end=2040,
                    n_agents=50e3
                    )
 
