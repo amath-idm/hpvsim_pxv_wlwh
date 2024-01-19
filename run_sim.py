@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
     T = sc.timer()
     location='south africa'
-    calib_filestem='_jan16'
+    calib_filestem='_jan18'
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
@@ -197,13 +197,18 @@ if __name__ == '__main__':
 
     sim.run()
 
+    sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
+    sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
+    sim.plot(to_plot=['hiv_prevalence', 'art_coverage'])
+
     import matplotlib.pylab as pl
 
     fig, ax = pl.subplots()
-    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_with_hiv'][:,-2], label='HIV positive')
-    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_no_hiv'][:, -2], label='HIV negative')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_with_hiv'][:,-25], label='HIV positive')
+    ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['cancer_incidence_by_age_no_hiv'][:, -25], label='HIV negative')
     ax.legend()
     fig.show()
+
 
     fig, ax = pl.subplots()
     ax.plot(sim.pars['age_bin_edges'][:-1], sim.results['hpv_prevalence_by_age_with_hiv'][:,-2], label='HIV positive')
