@@ -24,8 +24,8 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
@@ -88,8 +88,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
                       age=[38, 30, 45, 1]),
         sev_dist=dict(par1=[1, 1, 2, 0.1]),
         cell_imm_init=dict(par1=[0.2, 0.2, 0.8, 0.05]),
-        hpv_control_prob=[0,0,1, 0.25],
-        hpv_reactivation=[0.025, 0, 0.1, 0.025]
+        # hpv_control_prob=[0,0,1, 0.25],
+        # hpv_reactivation=[0.025, 0, 0.1, 0.025]
     )
 
     if location is None:
@@ -127,7 +127,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
             lt200=[1.5, 1.25, 5, 0.25],
             gt200=[1.5, 1.25, 4, 0.25]
         ),
-        rel_reactivation_prob=[3, 2, 5, 0.5]
+        # rel_reactivation_prob=[3, 2, 5, 0.5]
     )
 
     # Save some extra sim results
@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan16'
+        filestem = '_jan18'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)

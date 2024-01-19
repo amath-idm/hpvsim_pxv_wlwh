@@ -156,11 +156,11 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
 
     axes[2,0].set_xlabel('Routine Vaccine Coverage')
     axes[2, 1].set_xlabel('Routine Vaccine Coverage')
-    axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
-    axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    # axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    # axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
 
     fig.tight_layout()
-    fig_name = f'{figfolder}/summary_{location}.png'
+    fig_name = f'{figfolder}/summary_{location}{filestem}.png'
     sc.savefig(fig_name, dpi=100)
 
     return
@@ -284,7 +284,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     sc.SIticks(axes[0])
     sc.SIticks(axes[1])
     fig.tight_layout()
-    fig_name = f'{figfolder}/time_series_{location}.png'
+    fig_name = f'{figfolder}/time_series_{location}{filestem}.png'
     sc.savefig(fig_name, dpi=100)
 
     return
