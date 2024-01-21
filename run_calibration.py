@@ -66,7 +66,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     dflocation=location.replace(" ", "_")
     if location == 'south africa':
         hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
-        art_datafile = f'data/art_coverage_{dflocation}.csv'
+        art_datafile = [f'data/{dflocation}_art_coverage_by_age_males.csv',
+                        f'data/{dflocation}_art_coverage_by_age_females.csv']
     else:
         hiv_datafile = None
         art_datafile = None
@@ -186,7 +187,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan19'
+        filestem = '_jan21'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
@@ -195,7 +196,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan18'
+            filestem = '_jan19'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
     T.toc('Done')

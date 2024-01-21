@@ -124,7 +124,8 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, calib_pars=None, econ_an
     # Make arguments
     if location == 'south africa':
         hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
-        art_datafile = f'data/art_coverage_{dflocation}.csv'
+        art_datafile = [f'data/{dflocation}_art_coverage_by_age_males.csv',
+                        f'data/{dflocation}_art_coverage_by_age_females.csv']
     else:
         hiv_datafile = None
         art_datafile = None
@@ -177,12 +178,12 @@ if __name__ == '__main__':
 
     T = sc.timer()
     location='south africa'
-    calib_filestem='_jan18'
+    calib_filestem='_jan19'
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
     hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
-    art_datafile = f'data/art_coverage_{dflocation}.csv'
+    art_datafile = [f'data/{dflocation}_art_coverage_by_age_males.csv', f'data/{dflocation}_art_coverage_by_age_females.csv']
     # Make sim
 
     sim = make_sim(location=location,
