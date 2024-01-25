@@ -24,8 +24,8 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
@@ -65,9 +65,12 @@ def run_calib(location=None, n_trials=None, n_workers=None,
               do_plot=False, do_save=True, filestem=''):
     dflocation=location.replace(" ", "_")
     if location == 'south africa':
-        hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
-        art_datafile = [f'data/{dflocation}_art_coverage_by_age_males.csv',
-                        f'data/{dflocation}_art_coverage_by_age_females.csv']
+        hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+                        'data/south_africa_female_hiv_mortality.csv',
+                        'data/south_africa_male_hiv_mortality.csv']
+        art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
+                        '../test_data/south_africa_art_coverage_by_age_females.csv']
+
     else:
         hiv_datafile = None
         art_datafile = None
@@ -187,7 +190,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan21'
+        filestem = '_jan25'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
