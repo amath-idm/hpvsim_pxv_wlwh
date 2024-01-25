@@ -69,7 +69,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
                         'data/south_africa_female_hiv_mortality.csv',
                         'data/south_africa_male_hiv_mortality.csv']
         art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
-                        '../test_data/south_africa_art_coverage_by_age_females.csv']
+                        'data/south_africa_art_coverage_by_age_females.csv']
 
     else:
         hiv_datafile = None
