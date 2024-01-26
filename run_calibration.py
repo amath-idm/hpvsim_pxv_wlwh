@@ -42,8 +42,8 @@ storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage fo
 def make_priors():
     default = dict(
         rel_beta=[0.9, 0.8, 1.2, 0.05],
-        cancer_fn=dict(ld50=[25, 15, 30, 0.5]),
-        dur_cin=dict(par1=[10, 5, 20, 0.1],
+        cancer_fn=dict(ld50=[25, 20, 40, 1]),
+        dur_cin=dict(par1=[14, 5, 25, 0.5],
                      par2=[20, 10, 25, 0.5])
     )
 
@@ -53,7 +53,7 @@ def make_priors():
         ohr=sc.dcp(default),
         hpv16=dict(
             cancer_fn=dict(ld50=[20, 15, 30, 1]),
-            dur_cin=dict(par1=[12, 6, 20, 0.1],
+            dur_cin=dict(par1=[17, 10, 25, 0.5],
                          par2=[20, 10, 25, 0.5])
         ),
     )
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan25'
+            filestem = '_jan26'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
             best_par_ind = calib.df.index[0]
