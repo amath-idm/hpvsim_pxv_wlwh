@@ -76,6 +76,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         art_datafile = None
 
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
+    sim.initialize()
+    sim.results = sc.mergedicts(sim.results, sim.hivsim.results)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv', #Globocan
         # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
