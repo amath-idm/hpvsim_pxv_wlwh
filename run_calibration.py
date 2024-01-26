@@ -31,7 +31,7 @@ debug = False  # If True, this will do smaller runs that can be run locally for 
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [5000, 10][debug]  # How many trials to run for calibration
+n_trials = [7000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -52,7 +52,7 @@ def make_priors():
         hi5=sc.dcp(default),
         ohr=sc.dcp(default),
         hpv16=dict(
-            cancer_fn=dict(ld50=[15, 10, 30, 1]),
+            cancer_fn=dict(ld50=[20, 15, 30, 1]),
             dur_cin=dict(par1=[12, 6, 20, 0.1],
                          par2=[20, 10, 25, 0.5])
         ),
@@ -78,8 +78,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv', #Globocan
-        f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
-        f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        # f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
         f'data/{dflocation}_cin_types.csv',
         f'data/{dflocation}_cancer_types.csv',
     ]
@@ -90,7 +90,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         own_imm_hr=[0.5, 0.25, 1, 0.05],
         age_risk=dict(risk=[3.2, 1, 4, 0.1],
                       age=[38, 30, 45, 1]),
-        sev_dist=dict(par1=[1, 1, 2, 0.1]),
+        # sev_dist=dict(par1=[1, 1, 2, 0.1]),
         cell_imm_init=dict(par1=[0.2, 0.2, 0.8, 0.05]),
         # hpv_control_prob=[0,0,1, 0.25],
         # hpv_reactivation=[0.025, 0, 0.1, 0.025]
@@ -129,13 +129,16 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         ),
         rel_sev=dict(
             lt200=[1.5, 1.25, 5, 0.25],
-            gt200=[1.5, 1.25, 4, 0.25]
+            gt200=[1.5, 1.25, 3, 0.25]
         ),
         # rel_reactivation_prob=[3, 2, 5, 0.5]
     )
 
     # Save some extra sim results
-    extra_sim_result_keys = ['cancers', 'cancer_incidence', 'asr_cancer_incidence']
+    extra_sim_result_keys = ['cancers', 'cancers_with_hiv', 'cancers_no_hiv',
+                             'cancers_by_age_with_hiv', 'cancers_by_age_no_hiv',
+                             'asr_cancer_incidence', 'cancer_incidence_by_age_with_hiv',
+                             'cancer_incidence_by_age_no_hiv']
 
     calib = hpv.Calibration(sim, calib_pars=calib_pars, genotype_pars=genotype_pars,
                             hiv_pars=hiv_pars,
@@ -199,7 +202,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan21'
+            filestem = '_jan25'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
     T.toc('Done')
