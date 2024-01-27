@@ -78,8 +78,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv', #Globocan
-        f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
-        f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        # f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
         f'data/{dflocation}_cin_types.csv',
         f'data/{dflocation}_cancer_types.csv',
     ]
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan26_v2'
+        filestem = '_jan26'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan26'
+            filestem = '_jan26_v2'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
             best_par_ind = calib.df.index[0]
