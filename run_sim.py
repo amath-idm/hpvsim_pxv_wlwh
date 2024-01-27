@@ -131,7 +131,7 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, calib_pars=None, econ_an
                         'data/south_africa_female_hiv_mortality.csv',
                         'data/south_africa_male_hiv_mortality.csv']
         art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
-                        '../test_data/south_africa_art_coverage_by_age_females.csv']
+                        'data/south_africa_art_coverage_by_age_females.csv']
     else:
         hiv_datafile = None
         art_datafile = None
@@ -184,132 +184,62 @@ if __name__ == '__main__':
 
     T = sc.timer()
     location='south africa'
-    calib_filestem='_jan21'
+    calib_filestem='_jan26_hiv_stratified'
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
-    hiv_datafile = f'data/hiv_incidence_{dflocation}.csv'
-    art_datafile = [f'data/{dflocation}_art_coverage_by_age_males.csv', f'data/{dflocation}_art_coverage_by_age_females.csv']
+    hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+                    'data/south_africa_female_hiv_mortality.csv',
+                    'data/south_africa_male_hiv_mortality.csv']
+    art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
+                    'data/south_africa_art_coverage_by_age_females.csv']
     # Make sim
 
-    pars = {
-        'n_agents': 50e3,
-        'location': 'south africa',
-        'model_hiv': True,
-        'start': 1950,
-        'end': 2030,
-        'ms_agent_ratio': 100,
-        'hiv_pars' : {'model_hiv_death': False,
-                      'rel_sus':dict(lt200=1,gt200=1),
-                      'rel_sev':dict(lt200=1,gt200=1),
-                      'rel_imm':dict(lt200=1,gt200=1)}
-    }
 
-    sim = hpv.Sim(
-        pars=pars,
-        hiv_datafile=hiv_datafile,
-        art_datafile=art_datafile
-    )
+    sim = make_sim(location=location,
+                   calib_pars=calib_pars,
+                   analyzer=analyzer,
+                   vx_intv=[],
+                   hiv_datafile=hiv_datafile,
+                   art_datafile=art_datafile,
+                   end=2030,
+                   n_agents=50e3
+                   )
+
     sim.run()
 
+    sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
+    sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
+    sim.plot(to_plot=['hiv_prevalence_by_age', 'art_coverage'])
 
-    # sim = make_sim(location=location,
-    #                calib_pars=calib_pars,
-    #                analyzer=analyzer,
-    #                vx_intv=[],
-    #                hiv_datafile=hiv_datafile,
-    #                art_datafile=art_datafile,
-    #                end=2030,
-    #                n_agents=50e3
-    #                )
-    #
-    # sim.run()
-
-    # sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
-    # sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
-    # sim.plot(to_plot=['hiv_prevalence_by_age', 'art_coverage'])
-    #
-    # to_plot = {
-    #     'HIV prevalence': [
-    #         'hiv_prevalence',
-    #         'female_hiv_prevalence',
-    #         'male_hiv_prevalence'
-    #     ],
-    #     'HIV infections': [
-    #         'hiv_infections'
-    #     ],
-    #     'Total pop': [
-    #         'n_alive'
-    #     ]
-    #     # 'HPV prevalence by HIV status': [
-    #     #     'hpv_prevalence_by_age_with_hiv',
-    #     #     'hpv_prevalence_by_age_no_hiv'
-    #     # ],
-    #     # 'Age standardized cancer incidence (per 100,000 women)': [
-    #     #     'asr_cancer_incidence',
-    #     #     'cancer_incidence_with_hiv',
-    #     #     'cancer_incidence_no_hiv',
-    #     # ],
-    #     # 'Cancers by age and HIV status': [
-    #     #     'cancers_by_age_with_hiv',
-    #     #     'cancers_by_age_no_hiv'
-    #     # ]
-    # }
-    # sim.plot(to_plot=to_plot)
-
-    rsa_df = pd.read_csv(f'data/RSA_data.csv').set_index('Unnamed: 0').T
+    to_plot = {
+        'HIV prevalence': [
+            'hiv_prevalence',
+            'female_hiv_prevalence',
+            'male_hiv_prevalence'
+        ],
+        'HIV infections': [
+            'hiv_infections'
+        ],
+        'Total pop': [
+            'n_alive'
+        ]
+        # 'HPV prevalence by HIV status': [
+        #     'hpv_prevalence_by_age_with_hiv',
+        #     'hpv_prevalence_by_age_no_hiv'
+        # ],
+        # 'Age standardized cancer incidence (per 100,000 women)': [
+        #     'asr_cancer_incidence',
+        #     'cancer_incidence_with_hiv',
+        #     'cancer_incidence_no_hiv',
+        # ],
+        # 'Cancers by age and HIV status': [
+        #     'cancers_by_age_with_hiv',
+        #     'cancers_by_age_no_hiv'
+        # ]
+    }
+    sim.plot(to_plot=to_plot)
 
 
-    simres = sim.results
-    years = simres['year']
-    year_ind = sc.findinds(years, 1985)[0]
-
-    fig, ax = pl.subplots()
-    ax.plot(years[year_ind:], simres['female_hiv_prevalence'][year_ind:], label='Females, HPVsim')
-    ax.plot(years[year_ind:], simres['male_hiv_prevalence'][year_ind:], label='Males, HPVsim')
-    ax.scatter(years[year_ind:], rsa_df['female_hiv_prevalence'], label='Females, Thembisa')
-    ax.scatter(years[year_ind:], rsa_df['male_hiv_prevalence'], label='Males, Thembisa')
-    ax.set_title('HIV prevalence (no HIV mortality)')
-    ax.legend()
-    fig.show()
-
-    fig, ax = pl.subplots()
-    ax.plot(years[year_ind:], simres['hiv_infections'][year_ind:], label='HPVsim')
-    ax.scatter(years[year_ind:], rsa_df['hiv_infections'], label='Thembisa')
-    ax.set_title('HIV infections (no HIV mortality)')
-    ax.legend()
-    fig.show()
-
-    fig, ax = pl.subplots()
-    ax.plot(years[year_ind:], simres['n_alive'][year_ind:], label='HPVsim')
-    ax.scatter(years[year_ind:], rsa_df['n_alive'], label='Thembisa')
-    ax.set_title('Total population')
-    ax.legend()
-    fig.show()
-
-    fig, ax = pl.subplots()
-    ax.plot(years[year_ind:], simres['art_coverage'][year_ind:], label='HPVsim')
-    ax.scatter(years[year_ind:], rsa_df['art_coverage'], label='Thembisa')
-    ax.set_title('ART coverage')
-    ax.legend()
-    fig.show()
-
-
-    fig, axes = pl.subplots(nrows=1, ncols=2, sharex=True)
-    xvals = np.arange(10, 30)
-    for i, hiv_status in enumerate([True, False]):
-        ax = axes[i]
-        for gtype, p_exp in sim.analyzers[0].prop_exposed.items():
-            yvals = p_exp[hiv_status][2020]
-            ax.plot(xvals, yvals, label=sim.pars['genotype_map'][gtype].upper())
-    axes[0].set_title('HIV positive')
-    axes[1].set_title('HIV negative')
-    axes[0].legend(title='Genotype')
-    axes[0].set_ylabel('Proportion exposed')
-    for ax in axes:
-        ax.set_xlabel('Age')
-        sc.SIticks(ax)
-    fig.tight_layout()
-    fig.show()
     T.toc('Done')
 
