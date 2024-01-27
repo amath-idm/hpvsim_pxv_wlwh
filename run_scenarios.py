@@ -153,6 +153,9 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
         df['cancers']                   = msim.results['cancers'][:] # TODO: process in a loop
         df['cancers_low']               = msim.results['cancers'].low
         df['cancers_high']              = msim.results['cancers'].high
+        df['cancers_with_hiv']          = msim.results['cancers_with_hiv'][:] # TODO: process in a loop
+        df['cancers_with_hiv_low']      = msim.results['cancers_with_hiv'].low
+        df['cancers_with_hiv_high']     = msim.results['cancers_with_hiv'].high
         df['cancer_incidence']          = msim.results['cancer_incidence'][:]
         df['cancer_incidence_high']     = msim.results['cancer_incidence'].high
         df['cancer_incidence_low']      = msim.results['cancer_incidence'].low
