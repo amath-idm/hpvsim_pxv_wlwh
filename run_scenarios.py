@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan21')
+                                 debug=debug, calib_filestem='_jan26_hiv_stratified')
 
 
     # Plot results of scenarios
