@@ -78,8 +78,8 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv', #Globocan
-        # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
-        # f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
         f'data/{dflocation}_cin_types.csv',
         f'data/{dflocation}_cancer_types.csv',
     ]
@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan26'
+        filestem = '_jan26_v2'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
@@ -209,6 +209,23 @@ if __name__ == '__main__':
             extra_sim_results = calib.extra_sim_results[best_par_ind]
             years = calib.sim.results['year']
             year_ind = sc.findinds(years, 1985)[0]
+            import matplotlib.pylab as pl
 
+            fig, axes = pl.subplots(3, 1)
+            axes[0].plot(years[year_ind:], extra_sim_results['cancers_with_hiv'][year_ind:], label='HIV+')
+            axes[0].plot(years[year_ind:], extra_sim_results['cancers_no_hiv'][year_ind:], label='HIV-')
+            axes[0].plot(years[year_ind:], extra_sim_results['cancers'][year_ind:], label='Total')
+            axes[0].set_title(f'Cancers over time')
+            axes[0].legend()
+            axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
+                         extra_sim_results['cancer_incidence_by_age_with_hiv'][:, -2], label='HIV+')
+            axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
+                         extra_sim_results['cancer_incidence_by_age_no_hiv'][:, -2],
+                         label='HIV-')
+            axes[1].legend()
+
+            axes[2].plot(years[year_ind:], extra_sim_results['asr_cancer_incidence'][year_ind:])
+
+            fig.show()
 
     T.toc('Done')
