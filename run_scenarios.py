@@ -210,7 +210,7 @@ if __name__ == '__main__':
         rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan26_hiv_stratified')
+                                 debug=debug, calib_filestem='_jan27')
 
 
     # Plot results of scenarios
@@ -229,14 +229,14 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0, 0.2, 0.4, 0.8],
             rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan21'
+            filestem='_jan26_hiv_stratified'
         )
 
         ut.plot_ts(
             location=location,
             routine_coverage=[0, 0.2, 0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan21'
+            filestem='_jan26_hiv_stratified'
         )
 
 
