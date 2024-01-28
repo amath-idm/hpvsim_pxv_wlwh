@@ -258,8 +258,8 @@ def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     ls = ['solid', 'dotted']
 
 
-    fig, axes = pl.subplots(2, 1, figsize=(12, 12))
-    for iv, val in enumerate(['cancers', 'cancer_deaths']):
+    fig, axes = pl.subplots(3, 1, figsize=(12, 12))
+    for iv, val in enumerate(['cancers_with_hiv', 'cancers', 'cancer_deaths']):
         for ir, routine_cov in enumerate(routine_coverage):
             for ip, plwh_scen in enumerate(plwh):
                 df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.plwh == plwh_scen) & bigdf.rel_imm == 1]

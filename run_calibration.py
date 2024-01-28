@@ -24,8 +24,8 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     if 'plot_calibration' in to_run:
 
         for location in locations:
-            filestem = '_jan27'
+            filestem = '_jan28'
             calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
             best_par_ind = calib.df.index[0]
