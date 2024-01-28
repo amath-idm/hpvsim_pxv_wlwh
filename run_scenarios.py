@@ -105,7 +105,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
-                  econ_analyzer=True, n_agents=50e3)
+                  econ_analyzer=True, n_agents=10e3)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
@@ -156,6 +156,12 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
         df['cancers_with_hiv']          = msim.results['cancers_with_hiv'][:] # TODO: process in a loop
         df['cancers_with_hiv_low']      = msim.results['cancers_with_hiv'].low
         df['cancers_with_hiv_high']     = msim.results['cancers_with_hiv'].high
+        df['hiv_prevalence']            = msim.results['hiv_prevalence'][:] # TODO: process in a loop
+        df['hiv_prevalence_low']        = msim.results['hiv_prevalence'].low
+        df['hiv_prevalence_high']       = msim.results['hiv_prevalence'].high
+        df['art_coverage']              = msim.results['art_coverage'][:]  # TODO: process in a loop
+        df['art_coverage_low']          = msim.results['art_coverage'].low
+        df['art_coverage_high']         = msim.results['art_coverage'].high
         df['cancer_incidence']          = msim.results['cancer_incidence'][:]
         df['cancer_incidence_high']     = msim.results['cancer_incidence'].high
         df['cancer_incidence_low']      = msim.results['cancer_incidence'].low
@@ -229,14 +235,14 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0, 0.2, 0.4, 0.8],
             rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan27'
+            filestem='_jan28'
         )
 
         ut.plot_ts(
             location=location,
             routine_coverage=[0, 0.2, 0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan27'
+            filestem='_jan28'
         )
 
 
