@@ -105,7 +105,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
-                  econ_analyzer=True, n_agents=10e3)
+                  econ_analyzer=True, n_agents=50e3)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
