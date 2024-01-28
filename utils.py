@@ -288,3 +288,36 @@ def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     sc.savefig(fig_name, dpi=100)
 
     return
+
+
+def plot_hiv_ts(location, routine_coverage, plwh, filestem):
+    '''
+    Plot the residual burden of HPV under different scenarios
+    '''
+
+    set_font(size=20)
+    location = location.replace(' ', '_')
+    bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
+
+    years = bigdf['year'].unique().astype(int)
+    ys = sc.findinds(years, 2010)[0]
+    ye = sc.findinds(years, 2100)[0]
+
+    fig, axes = pl.subplots(2, 2, figsize=(12, 12))
+    to_plot = ['hiv_prevalence', 'art_coverage', 'cancers', 'cancers_with_hiv']
+    for iv, ax in enumerate(axes.flatten()):
+        val = to_plot[iv]
+        df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+        years = np.array(df['year'])[ys:ye]
+        result = np.array(df[val])[ys:ye]
+        low = np.array(df[f'{val}_low'])[ys:ye]
+        high = np.array(df[f'{val}_high'])[ys:ye]
+        ax.plot(years, result)
+        ax.fill_between(years, low, high,alpha=0.3)
+        ax.set_title(val)
+        sc.SIticks(ax)
+
+    fig.tight_layout()
+    fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
+    sc.savefig(fig_name, dpi=100)
+    return

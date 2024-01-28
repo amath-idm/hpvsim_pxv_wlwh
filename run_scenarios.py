@@ -156,9 +156,12 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
         df['cancers_with_hiv']          = msim.results['cancers_with_hiv'][:] # TODO: process in a loop
         df['cancers_with_hiv_low']      = msim.results['cancers_with_hiv'].low
         df['cancers_with_hiv_high']     = msim.results['cancers_with_hiv'].high
-        df['hiv_prevalence']            = msim.results['hiv_prevalence'][:] # TODO: process in a loop
-        df['hiv_prevalence_low']        = msim.results['hiv_prevalence'].low
-        df['hiv_prevalence_high']       = msim.results['hiv_prevalence'].high
+        df['female_hiv_prevalence']     = msim.results['female_hiv_prevalence'][:] # TODO: process in a loop
+        df['female_hiv_prevalence_low'] = msim.results['female_hiv_prevalence'].low
+        df['female_hiv_prevalence_high']= msim.results['female_hiv_prevalence'].high
+        df['hiv_incidence']             = msim.results['hiv_incidence'][:] # TODO: process in a loop
+        df['hiv_incidence_low']         = msim.results['hiv_incidence'].low
+        df['hiv_incidence_high']        = msim.results['hiv_incidence'].high
         df['art_coverage']              = msim.results['art_coverage'][:]  # TODO: process in a loop
         df['art_coverage_low']          = msim.results['art_coverage'].low
         df['art_coverage_high']         = msim.results['art_coverage'].high
@@ -242,6 +245,13 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0, 0.2, 0.4, 0.8],
             plwh=[True, False],
+            filestem='_jan28'
+        )
+
+        ut.plot_hiv_ts(
+            location=location,
+            routine_coverage=0,
+            plwh=False,
             filestem='_jan28'
         )
 
