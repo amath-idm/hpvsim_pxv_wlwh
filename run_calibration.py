@@ -24,14 +24,14 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [10000, 10][debug]  # How many trials to run for calibration
+n_trials = [15000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -194,7 +194,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan27'
+        filestem = '_jan28'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
