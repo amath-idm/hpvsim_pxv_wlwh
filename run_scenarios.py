@@ -217,7 +217,7 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        for hiv_death_adj, label in zip([3,2,1], ['_3xmortredux', '_2xmortredux', '_nomortredux']):
+        for hiv_death_adj, label in zip([2,1], ['_2xmortredux', '_nomortredux']):
 
             vx_coverage = [0, 0.4, 0.8]
             plwh = [True, False]
