@@ -219,7 +219,7 @@ if __name__ == '__main__':
         rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28', filestem='_2xinc')
+                                 debug=debug, calib_filestem='_jan28', filestem='')
 
 
     # Plot results of scenarios
@@ -236,23 +236,23 @@ if __name__ == '__main__':
 
         ut.plot_impact(
             location=location,
-            routine_coverage=[0, 0.2, 0.4, 0.8],
+            routine_coverage=[0.4, 0.8],
             rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan28'
+            filestem='_jan28_2xinc'
         )
 
         ut.plot_ts(
             location=location,
-            routine_coverage=[0, 0.2, 0.4, 0.8],
+            routine_coverage=[0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan28'
+            filestem='_jan28_2xinc'
         )
 
         ut.plot_hiv_ts(
             location=location,
             routine_coverage=0,
             plwh=False,
-            filestem='_jan28'
+            filestem='_jan28_2xinc'
         )
 
 
