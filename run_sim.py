@@ -211,14 +211,35 @@ if __name__ == '__main__':
                    hiv_datafile=hiv_datafile,
                    art_datafile=art_datafile,
                    end=2030,
-                   n_agents=10e3
+                   n_agents=10e3,
+                   hiv_death_adj=1
                    )
 
-    sim.run()
+    # sim.run()
+    #
+    # sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
+    # sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
+    # sim.plot(to_plot=['female_hiv_prevalence', 'art_coverage'])
 
-    sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
-    sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
-    sim.plot(to_plot=['hiv_prevalence', 'art_coverage'])
+    from scipy.stats import weibull_min
+    n_sample = 1000
+    fig, axes = pl.subplots(1,2, figsize=(12,12))
+    for i, adjust in enumerate([1, 2]):
+        ax=axes[i]
+        for age in [15, 20, 30, 40]:
+            shape = sim['hiv_pars']['time_to_hiv_death_shape']
+            scale = sim['hiv_pars']['time_to_hiv_death_scale'](age)
+            scale = np.maximum(scale, 0)
+            time_to_hiv_death = adjust * weibull_min.rvs(c=shape, scale=scale, size=n_sample)
+            ax.hist(time_to_hiv_death, alpha=0.4, label=f'age {age}')
+
+        title = ', 2x longer' if i == 1 else ''
+        ax.set_title(f'HIV progression (not on ART){title}')
+        ax.set_xlabel('Time to HIV mortality')
+    axes[0].legend(title='Age')
+    fig.tight_layout()
+    fig_name = f'figures/hiv_progression.png'
+    sc.savefig(fig_name, dpi=100)
 
     # to_plot = {
     #     'HIV prevalence': [

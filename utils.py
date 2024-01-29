@@ -306,7 +306,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 1985)[0]
-    ye = sc.findinds(years, 2100)[0]
+    ye = sc.findinds(years, 2050)[0]
 
     colors = sc.gridcolors(5)
 
@@ -324,7 +324,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
             result = np.array(df[val])[ys:ye]
             low = np.array(df[f'{val}_low'])[ys:ye]
             high = np.array(df[f'{val}_high'])[ys:ye]
-            if 'cancers' not in val:
+            if val in ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']:
                 result *= 100
                 low *= 100
                 high *= 100
@@ -340,9 +340,9 @@ def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
             ax.fill_between(years, low, high, alpha=0.3, color=colors[i_redux])
         if val in rsa_df.columns:
             if iv == 1:
-                ax.scatter(years[:-69], 100 * rsa_df[val], label='Thembisa', color='grey')
+                ax.scatter(years[:-19], 100 * rsa_df[val], label='Thembisa', color='grey')
             else:
-                ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
+                ax.scatter(years[:-19], 100 * rsa_df[val], color='grey')
 
         ax.set_title(val)
         if iv == 0:
@@ -354,7 +354,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)
 
-
+    axes[2,1].sharey(axes[2,0])
     fig.tight_layout()
     fig_name = f'{figfolder}/hiv_time_series_{location}_compare.png'
     sc.savefig(fig_name, dpi=100)

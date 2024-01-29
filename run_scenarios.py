@@ -217,7 +217,7 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        for hiv_death_adj, label in zip([2,1], ['_2xmortredux', '_nomortredux']):
+        for hiv_death_adj, label in zip([1.5], ['_1.5xmortredux']):
 
             vx_coverage = [0, 0.4, 0.8]
             plwh = [True, False]
@@ -260,14 +260,14 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['nomortredux', '2xmortredux', '3xmortredux']
+            filestems=['nomortredux', '2xmortredux']#, '3xmortredux']
         )
 
         ut.plot_impact_combined(
             location=location,
             routine_coverage=[0.4, 0.8],
             calib_filestem='_jan28',
-            filestems=['nomortredux', '2xmortredux', '3xmortredux']
+            filestems=['nomortredux', '2xmortredux']#, '3xmortredux']
         )
 
 
