@@ -89,10 +89,17 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
 
-    pars['hiv_pars']['hiv_death_adj'] = hiv_death_adj
+    def hiv_death_adj(sim):
+        year = int(sim.yearvec[sim.t])
+        if year == 2010:
+            sim['hiv_pars']['hiv_death_adj'] = hiv_death_adj
+        return
+
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
+    interventions += hiv_death_adj
+
     if not calib:
         if len(vx_intv):
             interventions += sp.get_vx_intvs(**vx_intv)

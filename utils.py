@@ -290,55 +290,201 @@ def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     return
 
 
-def plot_hiv_ts(location, routine_coverage, plwh, filestem):
+def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
 
     set_font(size=20)
     location = location.replace(' ', '_')
-    bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
+    dfs = sc.autolist()
+    for filestem in filestems:
+        df = sc.loadobj(f'{resfolder}/{location}_results{calib_filestem}_{filestem}.obj')
+        df['mort_redux'] = filestem
+        dfs.append(df)
+    bigdf = pd.concat(dfs)
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 1985)[0]
     ye = sc.findinds(years, 2100)[0]
 
+    colors = sc.gridcolors(5)
+
     rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
 
-
-    fig, axes = pl.subplots(2, 2, figsize=(12, 12))
-    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage', ['cancers', 'cancers_with_hiv']]
+    fig, axes = pl.subplots(3, 2, figsize=(12, 12))
+    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage', 'hiv_mortality', 'cancers', 'cancers_with_hiv']
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        if isinstance(val, list):
-            for val_to_plot in val:
-                df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
-                years = np.array(df['year'])[ys:ye]
-                result = np.array(df[val_to_plot])[ys:ye]
-                low = np.array(df[f'{val_to_plot}_low'])[ys:ye]
-                high = np.array(df[f'{val_to_plot}_high'])[ys:ye]
-                ax.plot(years, result, label=val_to_plot)
-                ax.fill_between(years, low, high, alpha=0.3)
-            ax.legend()
-            ax.set_title('cancers')
-        else:
-            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+        for i_redux, mort_redux in enumerate(np.unique(bigdf['mort_redux'].values)):
+            mort_label = mort_redux.replace('mortredux', '')
+            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & (bigdf.mort_redux==mort_redux)
+                       & bigdf.rel_imm == 1]
             years = np.array(df['year'])[ys:ye]
             result = np.array(df[val])[ys:ye]
             low = np.array(df[f'{val}_low'])[ys:ye]
             high = np.array(df[f'{val}_high'])[ys:ye]
-            ax.plot(years, 100*result, label='HPVsim')
-            ax.fill_between(years, 100*low, 100*high,alpha=0.3)
-            ax.scatter(years[:-69], 100*rsa_df[val], label='Thembisa')
-
-            ax.set_title(val)
+            if 'cancers' not in val:
+                result *= 100
+                low *= 100
+                high *= 100
             if iv == 0:
-                ax.legend(title='Source')
+                ax.plot(years, result, color=colors[i_redux], label=mort_label)
+            elif iv == 1:
+                if i_redux == 0:
+                    ax.plot(years, result, label='HPVsim', color=colors[i_redux])
+                else:
+                    ax.plot(years, result, color=colors[i_redux])
+            else:
+                ax.plot(years, result, color=colors[i_redux])
+            ax.fill_between(years, low, high, alpha=0.3, color=colors[i_redux])
+        if val in rsa_df.columns:
+            if iv == 1:
+                ax.scatter(years[:-69], 100 * rsa_df[val], label='Thembisa', color='grey')
+            else:
+                ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
+
+        ax.set_title(val)
+        if iv == 0:
+            ax.legend(title='HIV mort redux')
+
+        if iv == 1:
+            ax.legend(title='Source')
+
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)
 
 
     fig.tight_layout()
-    fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
+    fig_name = f'{figfolder}/hiv_time_series_{location}_compare.png'
+    sc.savefig(fig_name, dpi=100)
+    return
+
+
+def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
+    '''
+        Plot the residual burden of HPV under different scenarios
+        '''
+
+    set_font(size=20)
+    location = location.replace(' ', '_')
+    dfs = sc.autolist()
+    econdfs = sc.autolist()
+    for filestem in filestems:
+        df = sc.loadobj(f'{resfolder}/{location}_results{calib_filestem}_{filestem}.obj')
+        df['mort_redux'] = filestem
+        dfs.append(df)
+
+        econdf = sc.loadobj(f'{resfolder}/{location}_econ{calib_filestem}_{filestem}.obj')
+        econdf['mort_redux'] = filestem
+        econdfs.append(econdf)
+    bigdf = pd.concat(dfs)
+    econdf = pd.concat(econdfs)
+
+    years = bigdf['year'].unique().astype(int)
+    ys = sc.findinds(years, 2020)[0]
+    ye = sc.findinds(years, 2100)[0]
+    yev = sc.findinds(years, 2090)[0]
+    standard_le = 88.8
+    rel_imm_scen = 1
+
+    dfs = sc.autolist()
+    for routine_cov in routine_coverage:
+        for i_redux, mort_redux in enumerate(np.unique(bigdf['mort_redux'].values)):
+            mort_label = mort_redux.replace('mortredux', '')
+            summary_df = pd.DataFrame()
+            plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == True)]
+            df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == False)]
+
+            econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
+                        econdf.plwh == False)].groupby('year')[
+                ['new_cancers', 'new_cancer_deaths']].sum()
+
+            econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
+                        econdf.plwh == False)].groupby('year')[
+                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+            econdf_plwh_cancers = econdf[
+                (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
+                'year')[
+                ['new_cancers', 'new_cancer_deaths']].sum()
+
+            econdf_plwh_ages = econdf[
+                (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
+                'year')[
+                ['av_age_cancer_deaths', 'av_age_cancers']].mean()
+
+            cancers = econdf_cancers['new_cancers'].values
+            cancer_deaths = econdf_cancers['new_cancer_deaths'].values
+            cancers_plwh = econdf_plwh_cancers['new_cancers'].values
+            cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+
+            avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
+            avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
+            ca_years = avg_age_ca_death - avg_age_ca
+            yld = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years * cancers)
+            yll = np.sum((standard_le - avg_age_ca_death) * cancer_deaths)
+            dalys = yll + yld
+
+            avg_age_ca_death_plwh = np.mean(econdf_plwh_ages['av_age_cancer_deaths'])
+            avg_age_ca_plwh = np.mean(econdf_plwh_ages['av_age_cancers'])
+            ca_years_plwh = avg_age_ca_death_plwh - avg_age_ca_plwh
+            yld_plwh = np.sum(np.sum([0.54 * .1, 0.049 * .5, 0.451 * .3, 0.288 * .1]) * ca_years_plwh * cancers_plwh)
+            yll_plwh = np.sum((standard_le - avg_age_ca_death_plwh) * cancer_deaths_plwh)
+            dalys_plwh = yll_plwh + yld_plwh
+
+            summary_df['cancers_averted'] = [
+                np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])]
+            summary_df['cancer_deaths_averted'] = [
+                np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])]
+            summary_df['dalys_averted'] = [dalys - dalys_plwh]
+            summary_df['perc_cancers_averted'] = [
+                100 * (np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])) /
+                np.sum(np.array(df['cancers'])[ys:ye])]
+            summary_df['perc_cancer_deaths_averted'] = [
+                100 * (np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(
+                    np.array(plwh_df['cancer_deaths'])[ys:ye])) /
+                np.sum(np.array(df['cancer_deaths'])[ys:ye])]
+            summary_df['perc_dalys_averted'] = [100 * (dalys - dalys_plwh) / dalys]
+
+            summary_df['vx_coverage'] = routine_cov
+            summary_df['mort_redux'] = mort_label
+            dfs += summary_df
+
+    final_df = pd.concat(dfs)
+
+    label_dict = {
+        'cancers_averted': 'Cancers averted',
+        'cancer_deaths_averted': 'Cancer deaths averted',
+        'dalys_averted': 'DALYs averted',
+        'perc_cancers_averted': 'Percent cancers averted',
+        'perc_cancer_deaths_averted': 'Percent cancer deaths averted',
+        'perc_dalys_averted': 'Percent DALYs averted'
+
+    }
+    fig, axes = pl.subplots(3, 2, figsize=(12, 12), sharex=True)
+    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancer_deaths_averted',
+               'perc_cancer_deaths_averted', 'dalys_averted', 'perc_dalys_averted', ]
+    colors = sc.gridcolors(5)
+    for i, ax in enumerate(axes.flatten()):
+        val = to_plot[i]
+        df_pivot = pd.pivot_table(
+            final_df,
+            values=val,
+            index="vx_coverage",
+            columns="mort_redux"
+        )
+        df_pivot.plot(kind="bar", ax=ax, color=colors)
+        ax.set_ylabel(label_dict[val])
+        if i > 0:
+            ax.get_legend().remove()
+        sc.SIticks(ax)
+
+    axes[2, 0].set_xlabel('Routine Vaccine Coverage')
+    axes[2, 1].set_xlabel('Routine Vaccine Coverage')
+    # axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    # axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+
+    fig.tight_layout()
+    fig_name = f'{figfolder}/summary_{location}_compare.png'
     sc.savefig(fig_name, dpi=100)
     return

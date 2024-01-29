@@ -239,25 +239,35 @@ if __name__ == '__main__':
         #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
         # )
 
-        ut.plot_impact(
-            location=location,
-            routine_coverage=[0.4, 0.8],
-            rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan28_3xmortredux'
-        )
+        for sens in ['nomortredux', '2xmortredux', '3xmortredux']:
 
-        ut.plot_ts(
-            location=location,
-            routine_coverage=[0.4, 0.8],
-            plwh=[True, False],
-            filestem='_jan28_3xmortredux'
-        )
+            ut.plot_impact(
+                location=location,
+                routine_coverage=[0.4, 0.8],
+                rel_imm=[1],#, 0.75, 0.5],
+                filestem=f'_jan28_{sens}'
+            )
+
+            ut.plot_ts(
+                location=location,
+                routine_coverage=[0.4, 0.8],
+                plwh=[True, False],
+                filestem=f'_jan28_{sens}'
+            )
 
         ut.plot_hiv_ts(
             location=location,
             routine_coverage=0,
             plwh=False,
-            filestem='_jan28_3xmortredux'
+            calib_filestem='_jan28',
+            filestems=['nomortredux', '2xmortredux', '3xmortredux']
+        )
+
+        ut.plot_impact_combined(
+            location=location,
+            routine_coverage=[0.4, 0.8],
+            calib_filestem='_jan28',
+            filestems=['nomortredux', '2xmortredux', '3xmortredux']
         )
 
 
