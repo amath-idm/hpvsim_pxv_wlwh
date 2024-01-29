@@ -50,7 +50,7 @@ save_plots = True
 
 #%% Simulation creation functions
 def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
-        art_datafile=None, vx_intv=None, econ_analyzer=False, analyzer=None, end=None, seed=1):
+        art_datafile=None, vx_intv=None, hiv_death_adj=1, econ_analyzer=False, analyzer=None, end=None, seed=1):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
@@ -82,13 +82,14 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         ms_agent_ratio = 100,
         verbose        = 0.0,
         model_hiv      = True,
-        hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1),
-                              hiv_death_adj=4)
+        hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1))
     )
 
 
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
+
+    pars['hiv_pars']['hiv_death_adj'] = hiv_death_adj
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
@@ -189,7 +190,7 @@ if __name__ == '__main__':
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
-    hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+    hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
                     'data/south_africa_female_hiv_mortality.csv',
                     'data/south_africa_male_hiv_mortality.csv']
     art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',

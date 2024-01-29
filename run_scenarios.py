@@ -69,7 +69,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_filestem='', filestem='', # Input data
+def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_death_adj=1, calib_filestem='', filestem='', # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -105,7 +105,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
-                  econ_analyzer=True, n_agents=50e3)
+                  econ_analyzer=True, n_agents=50e3, hiv_death_adj=hiv_death_adj)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
@@ -217,9 +217,10 @@ if __name__ == '__main__':
         vx_coverage = [0, 0.4, 0.8]
         plwh = [True, False]
         rel_imm = [1]#, 0.75, 0.5]
+        hiv_death_adj = 3
 
-        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28', filestem='_mortredux')
+        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
+                                 debug=debug, calib_filestem='_jan28', filestem='_3xmortredux')
 
 
     # Plot results of scenarios
@@ -238,21 +239,21 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0.4, 0.8],
             rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan28_sens'
+            filestem='_jan28_mortredux'
         )
 
         ut.plot_ts(
             location=location,
             routine_coverage=[0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan28_sens'
+            filestem='_jan28_mortredux'
         )
 
         ut.plot_hiv_ts(
             location=location,
             routine_coverage=0,
             plwh=False,
-            filestem='_jan28_sens'
+            filestem='_jan28_mortredux'
         )
 
 
