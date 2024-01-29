@@ -26,6 +26,7 @@ import pandas as pd
 # Imports from this repository
 import pars_data as dp
 import pars_scenarios as sp
+from interventions import adjust_hiv_death
 import utils as ut
 import analyzers as an
 import matplotlib.pylab as pl
@@ -46,6 +47,8 @@ do_shrink = True # Do not keep people when running sims (saves memory)
 # Save settings
 do_save = True
 save_plots = True
+
+
 
 
 #%% Simulation creation functions
@@ -89,16 +92,11 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
 
-    def hiv_death_adj(sim):
-        year = int(sim.yearvec[sim.t])
-        if year == 2010:
-            sim['hiv_pars']['hiv_death_adj'] = hiv_death_adj
-        return
 
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
-    interventions += hiv_death_adj
+    interventions += adjust_hiv_death(hiv_death_adj)
 
     if not calib:
         if len(vx_intv):
