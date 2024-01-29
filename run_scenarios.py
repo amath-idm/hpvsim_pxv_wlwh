@@ -69,7 +69,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
 
     return msim
 
-def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_filestem='', # Input data
+def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_filestem='', filestem='', # Input data
               debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
@@ -124,7 +124,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
             econdfs += econdf
         sim['analyzers'] = []  # Remove the analyzer so we don't need to reduce it
     econ_df = pd.concat(econdfs)
-    sc.saveobj(f'{ut.resfolder}/{dflocation}_econ{calib_filestem}.obj', econ_df)
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_econ{calib_filestem}{filestem}.obj', econ_df)
 
     for sim in all_sims:  # Unflatten array
         i_r, i_pl, i_ri, i_s = sim.meta.inds
@@ -193,7 +193,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, calib_fi
 
     alldf = pd.concat(dfs)
 
-    sc.saveobj(f'{ut.resfolder}/{dflocation}_results{calib_filestem}.obj', alldf)
+    sc.saveobj(f'{ut.resfolder}/{dflocation}_results{calib_filestem}{filestem}.obj', alldf)
 
     return alldf, msims
 
@@ -219,7 +219,7 @@ if __name__ == '__main__':
         rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28')
+                                 debug=debug, calib_filestem='_jan28', filestem='_2xinc')
 
 
     # Plot results of scenarios

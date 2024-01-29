@@ -300,22 +300,43 @@ def plot_hiv_ts(location, routine_coverage, plwh, filestem):
     bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
 
     years = bigdf['year'].unique().astype(int)
-    ys = sc.findinds(years, 2010)[0]
+    ys = sc.findinds(years, 1985)[0]
     ye = sc.findinds(years, 2100)[0]
 
+    rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
+
+
     fig, axes = pl.subplots(2, 2, figsize=(12, 12))
-    to_plot = ['hiv_prevalence', 'art_coverage', 'cancers', 'cancers_with_hiv']
+    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage', ['cancers', 'cancers_with_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
-        years = np.array(df['year'])[ys:ye]
-        result = np.array(df[val])[ys:ye]
-        low = np.array(df[f'{val}_low'])[ys:ye]
-        high = np.array(df[f'{val}_high'])[ys:ye]
-        ax.plot(years, result)
-        ax.fill_between(years, low, high,alpha=0.3)
-        ax.set_title(val)
+        if isinstance(val, list):
+            for val_to_plot in val:
+                df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+                years = np.array(df['year'])[ys:ye]
+                result = np.array(df[val_to_plot])[ys:ye]
+                low = np.array(df[f'{val_to_plot}_low'])[ys:ye]
+                high = np.array(df[f'{val_to_plot}_high'])[ys:ye]
+                ax.plot(years, result, label=val_to_plot)
+                ax.fill_between(years, low, high, alpha=0.3)
+            ax.legend()
+            ax.set_title('cancers')
+        else:
+            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+            years = np.array(df['year'])[ys:ye]
+            result = np.array(df[val])[ys:ye]
+            low = np.array(df[f'{val}_low'])[ys:ye]
+            high = np.array(df[f'{val}_high'])[ys:ye]
+            ax.plot(years, 100*result, label='HPVsim')
+            ax.fill_between(years, 100*low, 100*high,alpha=0.3)
+            ax.scatter(years[:-69], 100*rsa_df[val], label='Thembisa')
+
+            ax.set_title(val)
+            if iv == 0:
+                ax.legend(title='Source')
+        ax.set_ylim(bottom=0)
         sc.SIticks(ax)
+
 
     fig.tight_layout()
     fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
