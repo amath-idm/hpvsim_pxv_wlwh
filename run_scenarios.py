@@ -159,6 +159,9 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_deat
         df['female_hiv_prevalence']     = msim.results['female_hiv_prevalence'][:] # TODO: process in a loop
         df['female_hiv_prevalence_low'] = msim.results['female_hiv_prevalence'].low
         df['female_hiv_prevalence_high']= msim.results['female_hiv_prevalence'].high
+        df['hiv_mortality']             = msim.results['hiv_mortality'][:]
+        df['hiv_mortality_low']         = msim.results['hiv_mortality'].low
+        df['hiv_mortality_high']        = msim.results['hiv_mortality'].high
         df['hiv_incidence']             = msim.results['hiv_incidence'][:] # TODO: process in a loop
         df['hiv_incidence_low']         = msim.results['hiv_incidence'].low
         df['hiv_incidence_high']        = msim.results['hiv_incidence'].high
@@ -214,13 +217,14 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0, 0.4, 0.8]
-        plwh = [True, False]
-        rel_imm = [1]#, 0.75, 0.5]
-        hiv_death_adj = 3
+        for hiv_death_adj, label in zip([3,2,1], ['_3xmortredux', '_2xmortredux', '_nomortredux']):
 
-        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28', filestem='_3xmortredux')
+            vx_coverage = [0, 0.4, 0.8]
+            plwh = [True, False]
+            rel_imm = [1]#, 0.75, 0.5]
+
+            alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
+                                     debug=debug, calib_filestem='_jan28', filestem=label)
 
 
     # Plot results of scenarios
@@ -239,21 +243,21 @@ if __name__ == '__main__':
             location=location,
             routine_coverage=[0.4, 0.8],
             rel_imm=[1],#, 0.75, 0.5],
-            filestem='_jan28_mortredux'
+            filestem='_jan28_3xmortredux'
         )
 
         ut.plot_ts(
             location=location,
             routine_coverage=[0.4, 0.8],
             plwh=[True, False],
-            filestem='_jan28_mortredux'
+            filestem='_jan28_3xmortredux'
         )
 
         ut.plot_hiv_ts(
             location=location,
             routine_coverage=0,
             plwh=False,
-            filestem='_jan28_mortredux'
+            filestem='_jan28_3xmortredux'
         )
 
 
