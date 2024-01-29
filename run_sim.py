@@ -83,7 +83,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         verbose        = 0.0,
         model_hiv      = True,
         hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1),
-                              hiv_death_adj=1.5)
+                              hiv_death_adj=4)
     )
 
 

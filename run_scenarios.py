@@ -214,12 +214,12 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0, 0.2, 0.4, 0.8]
+        vx_coverage = [0, 0.4, 0.8]
         plwh = [True, False]
         rel_imm = [1]#, 0.75, 0.5]
 
         alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28', filestem='_sens')
+                                 debug=debug, calib_filestem='_jan28', filestem='_mortredux')
 
 
     # Plot results of scenarios
