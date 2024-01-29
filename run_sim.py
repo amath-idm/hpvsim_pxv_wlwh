@@ -114,7 +114,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
 #%% Simulation running functions
 
-def run_sim(location=None, vx_intv=None, n_agents=50e3, calib_pars=None, econ_analyzer=False,
+def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_pars=None, econ_analyzer=False,
             debug=0, seed=0, label=None, meta=None, verbose=0.1, end=None,
             do_save=False, die=False):
     ''' Assemble the parts into a complete sim and run it '''
@@ -143,6 +143,7 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, calib_pars=None, econ_an
         debug=debug,
         vx_intv=vx_intv,
         n_agents=n_agents,
+        hiv_death_adj=hiv_death_adj,
         calib_pars=calib_pars,
         econ_analyzer=econ_analyzer,
         end=end,
