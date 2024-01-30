@@ -234,27 +234,36 @@ if __name__ == '__main__':
         art_coverage='ART coverage',
     )
     years = years[year_ind:]
-    fig, axes = pl.subplots(1, 2, figsize=(8, 4))
-    to_plot = ['female_hiv_prevalence', 'art_coverage']
+    fig, axes = pl.subplots(1, 3, figsize=(10, 4))
+    to_plot = ['female_hiv_prevalence', 'art_coverage', ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        result = simres[val][year_ind:]
-        if iv == 0:
-            ax.plot(years, 100 * result, label='HPVsim')
+        if isinstance(val, list):
+            for val_to_plot in val:
+                label = 'HIV+' if 'with_hiv' in val_to_plot else 'HIV-'
+                result = simres[val_to_plot][year_ind:]
+                ax.plot(years, result, label=label)
+            ax.legend()
+            ax.set_title('Cancer incidence')
         else:
-            ax.plot(years, 100 * result)
-        thembisa_val_lb = f'{val}_lb'
-        thembisa_val_ub = f'{val}_ub'
-        if iv == 0:
-            ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', label='Thembisa,\n95% uncertainty',
-                       color='grey')
-            ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
-        else:
-            ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', color='grey')
-            ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
-        ax.set_title(title_dict[val])
-        if iv == 0:
-            ax.legend(title='Source')
+
+            result = simres[val][year_ind:]
+            if iv == 0:
+                ax.plot(years, 100 * result, label='HPVsim')
+            else:
+                ax.plot(years, 100 * result)
+            thembisa_val_lb = f'{val}_lb'
+            thembisa_val_ub = f'{val}_ub'
+            if iv == 0:
+                ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', label='Thembisa,\n95% uncertainty',
+                           color='grey')
+                ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
+            else:
+                ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', color='grey')
+                ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
+            ax.set_title(title_dict[val])
+            if iv == 0:
+                ax.legend(title='Source')
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)
     fig.tight_layout()

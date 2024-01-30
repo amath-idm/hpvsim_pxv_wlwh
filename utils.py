@@ -78,23 +78,17 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
             econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == False)].groupby('year')[
                     ['av_age_cancer_deaths', 'av_age_cancers']].mean()
             econdf_plwh_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby('year')[
-                    ['new_cancers', 'new_cancer_deaths']].sum()
+                    ['new_cancers', 'new_cancer_deaths', 'plwh_vaccinations']].sum()
 
             econdf_plwh_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby('year')[
                     ['av_age_cancer_deaths', 'av_age_cancers']].mean()
 
-            if discounting:
-                cancers = np.array([i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancers'].values)])
-                cancer_deaths = np.array(
-                    [i / 1.03 ** t for t, i in enumerate(econdf_cancers['new_cancer_deaths'].values)])
-                cancers_plwh = np.array([i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancers'].values)])
-                cancer_deaths_plwh = np.array(
-                    [i / 1.03 ** t for t, i in enumerate(econdf_plwh_cancers['new_cancer_deaths'].values)])
-            else:
-                cancers = econdf_cancers['new_cancers'].values
-                cancer_deaths = econdf_cancers['new_cancer_deaths'].values
-                cancers_plwh = econdf_plwh_cancers['new_cancers'].values
-                cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+            cancers = econdf_cancers['new_cancers'].values
+            cancer_deaths = econdf_cancers['new_cancer_deaths'].values
+            cancers_plwh = econdf_plwh_cancers['new_cancers'].values
+            cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+            additional_vaccinations = np.sum(econdf_plwh_cancers['plwh_vaccinations'].values)
+
 
             avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
             avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
@@ -120,6 +114,10 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
                 100*(np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye]))/
                 np.sum(np.array(df['cancer_deaths'])[ys:ye])]
             summary_df['perc_dalys_averted'] = [100*(dalys - dalys_plwh)/dalys]
+            summary_df['additional_vaccinations'] = [additional_vaccinations]
+            summary_df['dalys_averted/dose'] = [1000*(dalys - dalys_plwh)/additional_vaccinations]
+            summary_df['cancers_averted/dose'] = [1000 * (np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])) / additional_vaccinations]
+            summary_df['cancer_deaths_averted/dose'] = [1000 * (np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])) / additional_vaccinations]
 
             summary_df['vx_coverage'] = routine_cov
             summary_df['rel_imm'] = rel_imm_scen
@@ -133,12 +131,16 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
         'dalys_averted': 'DALYs averted',
         'perc_cancers_averted': 'Percent cancers averted',
         'perc_cancer_deaths_averted': 'Percent cancer deaths averted',
-        'perc_dalys_averted': 'Percent DALYs averted'
+        'perc_dalys_averted': 'Percent DALYs averted',
+        'cancers_averted/dose': 'Cancers averted \nper 1,000 doses',
+        'cancer_deaths_averted/dose': 'Cancer deaths averted \nper 1,000 doses',
+        'dalys_averted/dose': 'DALYs averted \nper 1,000 doses',
 
     }
-    fig, axes = pl.subplots(3, 2, figsize=(12, 12), sharex=True)
-    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancer_deaths_averted',
-               'perc_cancer_deaths_averted', 'dalys_averted','perc_dalys_averted',]
+    fig, axes = pl.subplots(3, 3, figsize=(12, 12), sharex=True)
+    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancers_averted/dose',
+               'cancer_deaths_averted', 'perc_cancer_deaths_averted', 'cancer_deaths_averted/dose',
+               'dalys_averted', 'perc_dalys_averted', 'dalys_averted/dose']
 
     for i, ax in enumerate(axes.flatten()):
         val = to_plot[i]
@@ -146,12 +148,11 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
             final_df,
             values=val,
             index="vx_coverage",
-            columns="rel_imm"
+            # columns="rel_imm"
         )
         df_pivot.plot(kind="bar", ax=ax)
         ax.set_ylabel(label_dict[val])
-        if i>0:
-            ax.get_legend().remove()
+        ax.get_legend().remove()
         sc.SIticks(ax)
 
     axes[2,0].set_xlabel('Routine Vaccine Coverage')
@@ -516,7 +517,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, filestem):
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 1985)[0]
-    ye = sc.findinds(years, 2020)[0]
+    ye = sc.findinds(years, 2100)[0]
 
     rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
 
@@ -526,35 +527,49 @@ def plot_hiv_ts(location, routine_coverage, plwh, filestem):
         art_coverage='ART coverage',
     )
 
-    fig, axes = pl.subplots(1, 3, figsize=(14, 6))
-    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']
+    fig, axes = pl.subplots(1, 3, figsize=(12, 6))
+    to_plot = ['female_hiv_prevalence', 'art_coverage', ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
-        years = np.array(df['year'])[ys:ye]
-        result = np.array(df[val])[ys:ye]
-        low = np.array(df[f'{val}_low'])[ys:ye]
-        high = np.array(df[f'{val}_high'])[ys:ye]
-        if val in ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']:
-            result *= 100
-            low *= 100
-            high *= 100
-        if iv == 0:
-            ax.plot(years, result, label='HPVsim')
+        if isinstance(val, list):
+            for val_to_plot in val:
+                label = 'HIV+' if 'with_hiv' in val_to_plot else 'HIV-'
+                df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+                years = np.array(df['year'])[ys:ye]
+                result = np.array(df[val])[ys:ye]
+                low = np.array(df[f'{val}_low'])[ys:ye]
+                high = np.array(df[f'{val}_high'])[ys:ye]
+                ax.plot(years, result, label=label)
+                ax.fill_between(years, low, high, alpha=0.3)
+            ax.legend()
+            ax.set_title('Cancer incidence')
         else:
-            ax.plot(years, result)
 
-        ax.fill_between(years, low, high, alpha=0.3)
-
-        if val in rsa_df.columns:
+            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+            years = np.array(df['year'])[ys:ye]
+            result = np.array(df[val])[ys:ye]
+            low = np.array(df[f'{val}_low'])[ys:ye]
+            high = np.array(df[f'{val}_high'])[ys:ye]
+            if val in ['female_hiv_prevalence', 'art_coverage']:
+                result *= 100
+                low *= 100
+                high *= 100
             if iv == 0:
-                ax.scatter(years, 100 * rsa_df[val][:-11], label='Thembisa', color='grey')
+                ax.plot(years, result, label='HPVsim')
             else:
-                ax.scatter(years, 100 * rsa_df[val][:-11], color='grey')
+                ax.plot(years, result)
 
-        ax.set_title(title_dict[val])
-        if iv == 0:
-            ax.legend(title='Source')
+            ax.fill_between(years, low, high, alpha=0.3)
+
+            if val in rsa_df.columns:
+                if iv == 0:
+                    ax.scatter(years[:-69], 100 * rsa_df[val], label='Thembisa', color='grey')
+                else:
+                    ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
+
+            ax.set_title(title_dict[val])
+            if iv == 0:
+                ax.legend(title='Source')
 
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)

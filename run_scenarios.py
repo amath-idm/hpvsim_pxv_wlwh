@@ -159,6 +159,12 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_deat
         df['female_hiv_prevalence']     = msim.results['female_hiv_prevalence'][:] # TODO: process in a loop
         df['female_hiv_prevalence_low'] = msim.results['female_hiv_prevalence'].low
         df['female_hiv_prevalence_high']= msim.results['female_hiv_prevalence'].high
+        df['cancer_incidence_with_hiv'] = msim.results['cancer_incidence_with_hiv'][:]
+        df['cancer_incidence_with_hiv_low'] = msim.results['cancer_incidence_with_hiv'].low
+        df['cancer_incidence_with_hiv_high'] = msim.results['cancer_incidence_with_hiv'].high
+        df['cancer_incidence_no_hiv']   = msim.results['cancer_incidence_no_hiv'][:]
+        df['cancer_incidence_no_hiv_low'] = msim.results['cancer_incidence_no_hiv'].low
+        df['cancer_incidence_no_hiv_high'] = msim.results['cancer_incidence_no_hiv'].high
         df['hiv_mortality']             = msim.results['hiv_mortality'][:]
         df['hiv_mortality_low']         = msim.results['hiv_mortality'].low
         df['hiv_mortality_high']        = msim.results['hiv_mortality'].high
@@ -232,27 +238,27 @@ if __name__ == '__main__':
         location = 'south africa'
 
 
-        for sens in ['nomortredux', '1.5xmortredux']:
+        for sens in ['']:
 
             ut.plot_impact(
                 location=location,
                 routine_coverage=[0.4, 0.8],
                 rel_imm=[1],#, 0.75, 0.5],
-                filestem=f'_jan28_{sens}'
+                filestem=f'_jan28{sens}'
             )
 
             ut.plot_ts(
                 location=location,
-                routine_coverage=[0.4, 0.8],
+                routine_coverage=[0, 0.4, 0.8],
                 plwh=[True, False],
-                filestem=f'_jan28_{sens}'
+                filestem=f'_jan28{sens}'
             )
 
             ut.plot_hiv_ts(
                 location=location,
                 routine_coverage=0,
                 plwh=False,
-                filestem=f'_jan28_{sens}'
+                filestem=f'_jan28{sens}'
             )
 
 
