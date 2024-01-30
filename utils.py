@@ -316,7 +316,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
     to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage', 'hiv_mortality', 'cancers', 'cancers_with_hiv']
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        for i_redux, mort_redux in enumerate(np.unique(bigdf['mort_redux'].values)):
+        for i_redux, mort_redux in enumerate(filestems):
             mort_label = mort_redux.replace('mortredux', '')
             df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & (bigdf.mort_redux==mort_redux)
                        & bigdf.rel_imm == 1]
@@ -390,8 +390,10 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
 
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
-        for i_redux, mort_redux in enumerate(np.unique(bigdf['mort_redux'].values)):
+        mortlabels=[]
+        for i_redux, mort_redux in enumerate(filestems):
             mort_label = mort_redux.replace('mortredux', '')
+            mortlabels.append(mort_label)
             summary_df = pd.DataFrame()
             plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == True)]
             df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == False)]
@@ -447,7 +449,7 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             summary_df['perc_dalys_averted'] = [100 * (dalys - dalys_plwh) / dalys]
 
             summary_df['vx_coverage'] = routine_cov
-            summary_df['mort_redux'] = mort_label
+            summary_df['HIV mort redux'] = mort_label
             dfs += summary_df
 
     final_df = pd.concat(dfs)
@@ -471,8 +473,10 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             final_df,
             values=val,
             index="vx_coverage",
-            columns="mort_redux"
+            columns="HIV mort redux"
         )
+
+        df_pivot = df_pivot.reindex(mortlabels, axis=1)
         df_pivot.plot(kind="bar", ax=ax, color=colors)
         ax.set_ylabel(label_dict[val])
         if i > 0:

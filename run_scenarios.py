@@ -217,7 +217,7 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        for hiv_death_adj, label in zip([1.5], ['_1.5xmortredux']):
+        for hiv_death_adj, label in zip([1, 1.5], ['nomortredux_artcov', '_1.5xmortredux_artcov']):
 
             vx_coverage = [0, 0.4, 0.8]
             plwh = [True, False]
@@ -239,7 +239,7 @@ if __name__ == '__main__':
         #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
         # )
 
-        for sens in ['nomortredux', '2xmortredux', '3xmortredux']:
+        for sens in ['nomortredux', '1.5xmortredux', '2xmortredux']:
 
             ut.plot_impact(
                 location=location,
@@ -260,14 +260,14 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['nomortredux', '2xmortredux']#, '3xmortredux']
+            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
         )
 
         ut.plot_impact_combined(
             location=location,
             routine_coverage=[0.4, 0.8],
             calib_filestem='_jan28',
-            filestems=['nomortredux', '2xmortredux']#, '3xmortredux']
+            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
         )
 
 

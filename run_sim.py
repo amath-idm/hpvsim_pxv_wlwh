@@ -137,8 +137,9 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_p
         hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
                         'data/south_africa_female_hiv_mortality.csv',
                         'data/south_africa_male_hiv_mortality.csv']
-        art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
-                        'data/south_africa_art_coverage_by_age_females.csv']
+        # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
+        #                 'data/south_africa_art_coverage_by_age_females.csv']
+        art_datafile = ['data/art_coverage_south_africa.csv']
     else:
         hiv_datafile = None
         art_datafile = None
@@ -199,8 +200,9 @@ if __name__ == '__main__':
     hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
                     'data/south_africa_female_hiv_mortality.csv',
                     'data/south_africa_male_hiv_mortality.csv']
-    art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
-                    'data/south_africa_art_coverage_by_age_females.csv']
+    # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
+    #                 'data/south_africa_art_coverage_by_age_females.csv']
+    art_datafile = ['data/art_coverage_south_africa.csv']
     # Make sim
 
 
@@ -215,11 +217,11 @@ if __name__ == '__main__':
                    hiv_death_adj=1
                    )
 
-    # sim.run()
-    #
-    # sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
-    # sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
-    # sim.plot(to_plot=['female_hiv_prevalence', 'art_coverage'])
+    sim.run()
+
+    sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
+    sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
+    sim.plot(to_plot=['female_hiv_prevalence', 'art_coverage'])
 
     from scipy.stats import weibull_min
     n_sample = 1000
