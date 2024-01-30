@@ -527,22 +527,29 @@ def plot_hiv_ts(location, routine_coverage, plwh, filestem):
         art_coverage='ART coverage',
     )
 
-    fig, axes = pl.subplots(1, 3, figsize=(12, 6))
-    to_plot = ['female_hiv_prevalence', 'art_coverage', ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
+    fig, axes = pl.subplots(2, 2, figsize=(12, 12))
+    to_plot = ['female_hiv_prevalence', 'art_coverage', ['cancers_with_hiv', 'cancers'],
+               ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
         if isinstance(val, list):
             for val_to_plot in val:
-                label = 'HIV+' if 'with_hiv' in val_to_plot else 'HIV-'
+                if 'with_hiv' in val_to_plot:
+                    label = 'HIV+'
+                elif 'no_hiv' in val_to_plot:
+                    label = 'HIV-'
+                else:
+                    label ='Overall'
                 df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
                 years = np.array(df['year'])[ys:ye]
-                result = np.array(df[val])[ys:ye]
-                low = np.array(df[f'{val}_low'])[ys:ye]
-                high = np.array(df[f'{val}_high'])[ys:ye]
+                result = np.array(df[val_to_plot])[ys:ye]
+                low = np.array(df[f'{val_to_plot}_low'])[ys:ye]
+                high = np.array(df[f'{val_to_plot}_high'])[ys:ye]
                 ax.plot(years, result, label=label)
                 ax.fill_between(years, low, high, alpha=0.3)
             ax.legend()
-            ax.set_title('Cancer incidence')
+            title = 'Cancer incidence' if 'incidence' in val_to_plot else 'Cancers'
+            ax.set_title(title)
         else:
 
             df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]

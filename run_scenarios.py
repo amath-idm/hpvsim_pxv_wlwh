@@ -223,13 +223,15 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        vx_coverage = [0, 0.4, 0.8]
-        plwh = [False, True]
-        rel_imm = [1]
+        for hiv_death_adj, label in zip([1.5], ['_1.5xmortredux']):
 
-        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm,
-                                 n_seeds=n_seeds, location=location,
-                                 debug=debug, calib_filestem='_jan28')
+            vx_coverage = [0, 0.4, 0.8]
+            plwh = [False, True]
+            rel_imm = [1]
+
+            alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
+                                     debug=debug, calib_filestem='_jan28', filestem=label)
+
 
 
 

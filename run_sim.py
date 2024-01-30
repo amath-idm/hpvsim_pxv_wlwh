@@ -100,7 +100,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     interventions = sc.autolist()
     # interventions += adjust_hiv_death(hiv_death_adj)
 
-    interventions += adjust_hiv_death(years=[1985,2000,2010], hiv_mort_adj=[1,1,1.5])
+    interventions += adjust_hiv_death(years=[1985,2000,2010], hiv_mort_adj=[1,1,1.5*hiv_death_adj])
 
     if not calib:
         if len(vx_intv):
