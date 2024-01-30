@@ -223,9 +223,9 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        for hiv_death_adj, label in zip([1.5], ['_1.5xmortredux']):
+        for hiv_death_adj, label in zip([1, 1.5], ['','_1.5xmortredux']):
 
-            vx_coverage = [0, 0.4, 0.8]
+            vx_coverage = [0, 0.2, 0.4, 0.8]
             plwh = [False, True]
             rel_imm = [1]
 
@@ -240,7 +240,7 @@ if __name__ == '__main__':
         location = 'south africa'
 
 
-        for sens in ['']:
+        for sens in ['', '_1.5xmortredux']:
 
             ut.plot_impact(
                 location=location,
@@ -251,7 +251,7 @@ if __name__ == '__main__':
 
             ut.plot_ts(
                 location=location,
-                routine_coverage=[0, 0.4, 0.8],
+                routine_coverage=[0.4, 0.8],
                 plwh=[True, False],
                 filestem=f'_jan28{sens}'
             )
@@ -269,14 +269,14 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
+            filestems=['', '_1.5xmortredux']
         )
 
         ut.plot_impact_combined(
             location=location,
             routine_coverage=[0.4, 0.8],
             calib_filestem='_jan28',
-            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
+            filestems=['', '_1.5xmortredux']#, '2xmortredux']
         )
 
 
