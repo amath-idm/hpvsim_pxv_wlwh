@@ -511,7 +511,7 @@ def plot_hiv_ts(location, routine_coverage, plwh, filestem):
 
     title_dict = dict(
         female_hiv_prevalence='HIV prevalence, females 15+',
-        hiv_incidence='HIV incidence, 10+',
+        hiv_incidence='HIV incidence',
         art_coverage='ART coverage',
     )
 

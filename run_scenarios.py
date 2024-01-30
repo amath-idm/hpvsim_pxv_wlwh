@@ -234,19 +234,19 @@ if __name__ == '__main__':
 
         for sens in ['nomortredux_artcov', '1.5xmortredux_artcov']:
 
-            ut.plot_impact(
-                location=location,
-                routine_coverage=[0.4, 0.8],
-                rel_imm=[1],#, 0.75, 0.5],
-                filestem=f'_jan28_{sens}'
-            )
-
-            ut.plot_ts(
-                location=location,
-                routine_coverage=[0.4, 0.8],
-                plwh=[True, False],
-                filestem=f'_jan28_{sens}'
-            )
+            # ut.plot_impact(
+            #     location=location,
+            #     routine_coverage=[0.4, 0.8],
+            #     rel_imm=[1],#, 0.75, 0.5],
+            #     filestem=f'_jan28_{sens}'
+            # )
+            #
+            # ut.plot_ts(
+            #     location=location,
+            #     routine_coverage=[0.4, 0.8],
+            #     plwh=[True, False],
+            #     filestem=f'_jan28_{sens}'
+            # )
 
             ut.plot_hiv_ts(
                 location=location,
@@ -264,11 +264,11 @@ if __name__ == '__main__':
             filestems=['nomortredux_artcov', '1.5xmortredux_artcov']#, '2xmortredux']
         )
 
-        ut.plot_impact_combined(
-            location=location,
-            routine_coverage=[0.4, 0.8],
-            calib_filestem='_jan28',
-            filestems=['nomortredux_artcov', '1.5xmortredux_artcov']#, '2xmortredux']
-        )
+        # ut.plot_impact_combined(
+        #     location=location,
+        #     routine_coverage=[0.4, 0.8],
+        #     calib_filestem='_jan28',
+        #     filestems=['nomortredux_artcov', '1.5xmortredux_artcov']#, '2xmortredux']
+        # )
 
 

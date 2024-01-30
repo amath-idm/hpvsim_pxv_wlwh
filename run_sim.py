@@ -135,7 +135,7 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_p
     dflocation = location.replace(' ', '_')
     # Make arguments
     if location == 'south africa':
-        hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+        hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
                         'data/south_africa_female_hiv_mortality.csv',
                         'data/south_africa_male_hiv_mortality.csv']
         # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
-    hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
+    hiv_datafile = ['data/hiv_incidence_south_africa.csv',
                     'data/south_africa_female_hiv_mortality.csv',
                     'data/south_africa_male_hiv_mortality.csv']
     # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                    hiv_datafile=hiv_datafile,
                    art_datafile=art_datafile,
                    end=2030,
-                   n_agents=10e3,
+                   n_agents=50e3,
                    hiv_death_adj=1
                    )
 
