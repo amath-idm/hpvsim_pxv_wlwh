@@ -349,13 +349,16 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
                         label = 'Overall'
                         linestyle = 'solid'
                     result = np.array(df[val_to_plot])[ys:ye]
+                    result = np.convolve(list(result), np.ones(5), "valid")/5
                     low = np.array(df[f'{val_to_plot}_low'])[ys:ye]
+                    low = np.convolve(list(low), np.ones(5), "valid") / 5
                     high = np.array(df[f'{val_to_plot}_high'])[ys:ye]
+                    high = np.convolve(list(high), np.ones(5), "valid") / 5
                     if i_redux == 0:
-                        ax.plot(years, result, color=colors[i_redux], linestyle=linestyle, label=label)
+                        ax.plot(years[4:], result, color=colors[i_redux], linestyle=linestyle, label=label)
                     else:
-                        ax.plot(years, result, color=colors[i_redux], linestyle=linestyle)
-                    ax.fill_between(years, low, high, color=colors[i_redux], alpha=0.3)
+                        ax.plot(years[4:], result, color=colors[i_redux], linestyle=linestyle)
+                    ax.fill_between(years[4:], low, high, color=colors[i_redux], alpha=0.3)
                 title = 'Cancer incidence' if 'incidence' in val_to_plot else 'Cancers'
                 ax.set_title(title)
                 ax.legend()
@@ -543,9 +546,9 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
     axes[2, 0].set_xlabel('Routine Vaccine Coverage')
     axes[2, 1].set_xlabel('Routine Vaccine Coverage')
     axes[2,2].set_xlabel('Routine Vaccine Coverage')
-    axes[2,0].set_xticklabels(['40%', '80%'], rotation=0)
-    axes[2, 1].set_xticklabels(['40%', '80%'], rotation=0)
-    axes[2, 2].set_xticklabels(['40%', '80%'], rotation=0)
+    axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
+    axes[2, 2].set_xticklabels(['20%', '40%', '80%'], rotation=0)
 
     fig.tight_layout()
     fig_name = f'{figfolder}/summary_{location}_compare.png'

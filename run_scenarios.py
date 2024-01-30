@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    'run_scenarios',
-    # 'plot_scenarios',
+    # 'run_scenarios',
+    'plot_scenarios',
 
 ]
 
@@ -244,14 +244,14 @@ if __name__ == '__main__':
 
             ut.plot_impact(
                 location=location,
-                routine_coverage=[0.4, 0.8],
+                routine_coverage=[0.2, 0.4, 0.8],
                 rel_imm=[1],#, 0.75, 0.5],
                 filestem=f'_jan28{sens}'
             )
 
             ut.plot_ts(
                 location=location,
-                routine_coverage=[0.4, 0.8],
+                routine_coverage=[0.2, 0.4, 0.8],
                 plwh=[True, False],
                 filestem=f'_jan28{sens}'
             )
@@ -274,7 +274,7 @@ if __name__ == '__main__':
 
         ut.plot_impact_combined(
             location=location,
-            routine_coverage=[0.4, 0.8],
+            routine_coverage=[0.2, 0.4, 0.8],
             calib_filestem='_jan28',
             filestems=['', '_1.5xmortredux']#, '2xmortredux']
         )

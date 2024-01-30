@@ -242,7 +242,8 @@ if __name__ == '__main__':
             for val_to_plot in val:
                 label = 'HIV+' if 'with_hiv' in val_to_plot else 'HIV-'
                 result = simres[val_to_plot][year_ind:]
-                ax.plot(years, result, label=label)
+                result = np.convolve(list(result), np.ones(5), "valid") / 5
+                ax.plot(years[4:], result, label=label)
             ax.legend()
             ax.set_title('Cancer incidence')
         else:
