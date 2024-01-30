@@ -230,14 +230,7 @@ if __name__ == '__main__':
     # Plot results of scenarios
     if 'plot_scenarios' in to_run:
         location = 'south africa'
-        # ut.plot_residual_burden(
-        #     location=location,
-        #     vx_scens=['No vaccine',
-        #               'Vx, 50% cov, 9-10 routine, 10-18 catchup',
-        #               'Vx, 50% cov, 9-10 routine, 15-18 catchup',
-        #               'Vx, 70% cov, 9-10 routine, 10-18 catchup',
-        #               'Vx, 70% cov, 9-10 routine, 15-18 catchup'],
-        # )
+
 
         for sens in ['nomortredux_artcov', '1.5xmortredux_artcov']:
 
@@ -255,7 +248,15 @@ if __name__ == '__main__':
                 filestem=f'_jan28_{sens}'
             )
 
-        ut.plot_hiv_ts(
+            ut.plot_hiv_ts(
+                location=location,
+                routine_coverage=0,
+                plwh=False,
+                filestem=f'_jan28_{sens}'
+            )
+
+
+        ut.plot_hiv_ts_combined(
             location=location,
             routine_coverage=0,
             plwh=False,

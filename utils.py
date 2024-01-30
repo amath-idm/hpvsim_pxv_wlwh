@@ -290,7 +290,7 @@ def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     return
 
 
-def plot_hiv_ts(location, routine_coverage, plwh, calib_filestem, filestems):
+def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, filestems):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
@@ -490,5 +490,65 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
 
     fig.tight_layout()
     fig_name = f'{figfolder}/summary_{location}_compare.png'
+    sc.savefig(fig_name, dpi=100)
+    return
+
+
+def plot_hiv_ts(location, routine_coverage, plwh, filestem):
+    '''
+    Plot the residual burden of HPV under different scenarios
+    '''
+
+    set_font(size=20)
+    location = location.replace(' ', '_')
+    bigdf = sc.loadobj(f'{resfolder}/{location}_results{filestem}.obj')
+
+    years = bigdf['year'].unique().astype(int)
+    ys = sc.findinds(years, 1985)[0]
+    ye = sc.findinds(years, 2020)[0]
+
+    rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
+
+    title_dict = dict(
+        female_hiv_prevalence='HIV prevalence, females 15+',
+        hiv_incidence='HIV incidence, 10+',
+        art_coverage='ART coverage',
+    )
+
+    fig, axes = pl.subplots(1, 3, figsize=(14, 6))
+    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']
+    for iv, ax in enumerate(axes.flatten()):
+        val = to_plot[iv]
+        df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & bigdf.rel_imm == 1]
+        years = np.array(df['year'])[ys:ye]
+        result = np.array(df[val])[ys:ye]
+        low = np.array(df[f'{val}_low'])[ys:ye]
+        high = np.array(df[f'{val}_high'])[ys:ye]
+        if val in ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']:
+            result *= 100
+            low *= 100
+            high *= 100
+        if iv == 0:
+            ax.plot(years, result, label='HPVsim')
+        else:
+            ax.plot(years, result)
+
+        ax.fill_between(years, low, high, alpha=0.3)
+
+        if val in rsa_df.columns:
+            if iv == 0:
+                ax.scatter(years, 100 * rsa_df[val][:-11], label='Thembisa', color='grey')
+            else:
+                ax.scatter(years, 100 * rsa_df[val][:-11], color='grey')
+
+        ax.set_title(title_dict[val])
+        if iv == 0:
+            ax.legend(title='Source')
+
+        ax.set_ylim(bottom=0)
+        sc.SIticks(ax)
+
+    fig.tight_layout()
+    fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
     sc.savefig(fig_name, dpi=100)
     return
