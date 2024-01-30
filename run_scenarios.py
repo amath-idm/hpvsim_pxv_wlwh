@@ -217,14 +217,14 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        for hiv_death_adj, label in zip([1, 1.5], ['_nomortredux', '_1.5xmortredux']):
+        vx_coverage = [0, 0.4, 0.8]
+        plwh = [False, True]
+        rel_imm = [1]
 
-            vx_coverage = [0, 0.4, 0.8]
-            plwh = [False, True]
-            rel_imm = [1]
+        alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm,
+                                 n_seeds=n_seeds, location=location,
+                                 debug=debug, calib_filestem='_jan28')
 
-            alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
-                                     debug=debug, calib_filestem='_jan28', filestem=label)
 
 
     # Plot results of scenarios
@@ -232,21 +232,21 @@ if __name__ == '__main__':
         location = 'south africa'
 
 
-        for sens in ['nomortredux_artcov', '1.5xmortredux_artcov']:
+        for sens in ['nomortredux', '1.5xmortredux']:
 
-            # ut.plot_impact(
-            #     location=location,
-            #     routine_coverage=[0.4, 0.8],
-            #     rel_imm=[1],#, 0.75, 0.5],
-            #     filestem=f'_jan28_{sens}'
-            # )
-            #
-            # ut.plot_ts(
-            #     location=location,
-            #     routine_coverage=[0.4, 0.8],
-            #     plwh=[True, False],
-            #     filestem=f'_jan28_{sens}'
-            # )
+            ut.plot_impact(
+                location=location,
+                routine_coverage=[0.4, 0.8],
+                rel_imm=[1],#, 0.75, 0.5],
+                filestem=f'_jan28_{sens}'
+            )
+
+            ut.plot_ts(
+                location=location,
+                routine_coverage=[0.4, 0.8],
+                plwh=[True, False],
+                filestem=f'_jan28_{sens}'
+            )
 
             ut.plot_hiv_ts(
                 location=location,
@@ -261,14 +261,14 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['nomortredux_artcov', '1.5xmortredux_artcov']#, '2xmortredux']
+            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
         )
 
-        # ut.plot_impact_combined(
-        #     location=location,
-        #     routine_coverage=[0.4, 0.8],
-        #     calib_filestem='_jan28',
-        #     filestems=['nomortredux_artcov', '1.5xmortredux_artcov']#, '2xmortredux']
-        # )
+        ut.plot_impact_combined(
+            location=location,
+            routine_coverage=[0.4, 0.8],
+            calib_filestem='_jan28',
+            filestems=['nomortredux', '1.5xmortredux']#, '2xmortredux']
+        )
 
 

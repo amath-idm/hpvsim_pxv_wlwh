@@ -306,7 +306,7 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
 
     years = bigdf['year'].unique().astype(int)
     ys = sc.findinds(years, 1985)[0]
-    ye = sc.findinds(years, 2050)[0]
+    ye = sc.findinds(years, 2100)[0]
 
     colors = sc.gridcolors(5)
 
@@ -340,9 +340,9 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
             ax.fill_between(years, low, high, alpha=0.3, color=colors[i_redux])
         if val in rsa_df.columns:
             if iv == 1:
-                ax.scatter(years[:-19], 100 * rsa_df[val], label='Thembisa', color='grey')
+                ax.scatter(years[:-69], 100 * rsa_df[val], label='Thembisa', color='grey')
             else:
-                ax.scatter(years[:-19], 100 * rsa_df[val], color='grey')
+                ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
 
         ax.set_title(val)
         if iv == 0:
@@ -400,7 +400,7 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
 
             econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
                         econdf.plwh == False)].groupby('year')[
-                ['new_cancers', 'new_cancer_deaths']].sum()
+                ['new_cancers', 'new_cancer_deaths', 'new_vaccinations']].sum()
 
             econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
                         econdf.plwh == False)].groupby('year')[
@@ -408,7 +408,7 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             econdf_plwh_cancers = econdf[
                 (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
                 'year')[
-                ['new_cancers', 'new_cancer_deaths']].sum()
+                ['new_cancers', 'new_cancer_deaths', 'new_vaccinations']].sum()
 
             econdf_plwh_ages = econdf[
                 (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
@@ -419,6 +419,9 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             cancer_deaths = econdf_cancers['new_cancer_deaths'].values
             cancers_plwh = econdf_plwh_cancers['new_cancers'].values
             cancer_deaths_plwh = econdf_plwh_cancers['new_cancer_deaths'].values
+            vaccinations = econdf_cancers['new_vaccinations'].values
+            vaccinations_plwh = econdf_plwh_cancers['new_vaccinations'].values
+            additional_vaccinations = np.sum(vaccinations_plwh) - np.sum(vaccinations)
 
             avg_age_ca_death = np.mean(econdf_ages['av_age_cancer_deaths'])
             avg_age_ca = np.mean(econdf_ages['av_age_cancers'])
@@ -447,7 +450,10 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
                     np.array(plwh_df['cancer_deaths'])[ys:ye])) /
                 np.sum(np.array(df['cancer_deaths'])[ys:ye])]
             summary_df['perc_dalys_averted'] = [100 * (dalys - dalys_plwh) / dalys]
-
+            summary_df['additional_vaccinations'] = [additional_vaccinations]
+            summary_df['dalys_averted/dose'] = [1000*(dalys - dalys_plwh)/additional_vaccinations]
+            summary_df['cancers_averted/dose'] = [1000 * (np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])) / additional_vaccinations]
+            summary_df['cancer_deaths_averted/dose'] = [1000 * (np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])) / additional_vaccinations]
             summary_df['vx_coverage'] = routine_cov
             summary_df['HIV mort redux'] = mort_label
             dfs += summary_df
@@ -460,12 +466,16 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
         'dalys_averted': 'DALYs averted',
         'perc_cancers_averted': 'Percent cancers averted',
         'perc_cancer_deaths_averted': 'Percent cancer deaths averted',
-        'perc_dalys_averted': 'Percent DALYs averted'
+        'perc_dalys_averted': 'Percent DALYs averted',
+        'cancers_averted/dose': 'Cancers averted \nper 1,000 doses',
+        'cancer_deaths_averted/dose': 'Cancer deaths averted \nper 1,000 doses',
+        'dalys_averted/dose': 'DALYs averted \nper 1,000 doses',
 
     }
-    fig, axes = pl.subplots(3, 2, figsize=(12, 12), sharex=True)
-    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancer_deaths_averted',
-               'perc_cancer_deaths_averted', 'dalys_averted', 'perc_dalys_averted', ]
+    fig, axes = pl.subplots(3, 3, figsize=(12, 12), sharex=True)
+    to_plot = ['cancers_averted', 'perc_cancers_averted', 'cancers_averted/dose',
+               'cancer_deaths_averted', 'perc_cancer_deaths_averted', 'cancer_deaths_averted/dose',
+               'dalys_averted', 'perc_dalys_averted', 'dalys_averted/dose']
     colors = sc.gridcolors(5)
     for i, ax in enumerate(axes.flatten()):
         val = to_plot[i]
@@ -485,6 +495,7 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
 
     axes[2, 0].set_xlabel('Routine Vaccine Coverage')
     axes[2, 1].set_xlabel('Routine Vaccine Coverage')
+    axes[2,2].set_xlabel('Routine Vaccine Coverage')
     # axes[2,0].set_xticklabels(['20%', '40%', '80%'], rotation=0)
     # axes[2, 1].set_xticklabels(['20%', '40%', '80%'], rotation=0)
 

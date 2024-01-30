@@ -26,7 +26,7 @@ class econ_analyzer(hpv.Analyzer):
 
     def initialize(self, sim):
         super().initialize(sim)
-        columns = ['new_vaccinations', 'new_cancers', 'new_cancer_deaths', 'new_other_deaths',
+        columns = ['routine_vaccinations', 'plwh_vaccinations', 'new_cancers', 'new_cancer_deaths', 'new_other_deaths',
                    'av_age_cancers', 'av_age_cancer_deaths', 'av_age_other_deaths']
         self.si = sc.findinds(sim.res_yearvec, self.start)[0]
         self.df = pd.DataFrame(0.0, index=pd.Index(sim.res_yearvec[self.si:], name='year'), columns=columns)
@@ -51,11 +51,11 @@ class econ_analyzer(hpv.Analyzer):
             simvals = sim.meta.vals
             pxv = simvals.plwh
             # Resources
-            self.df.loc[li].new_vaccinations += sim.get_intervention('Routine vx').n_products_used.values[ltt]
-            self.df.loc[li].new_vaccinations += sim.get_intervention('Catchup vx').n_products_used.values[ltt]
+            self.df.loc[li].routine_vaccinations += sim.get_intervention('Routine vx').n_products_used.values[ltt]
+            self.df.loc[li].routine_vaccinations += sim.get_intervention('Catchup vx').n_products_used.values[ltt]
 
             if pxv:
-                self.df.loc[li].new_vaccinations += sim.get_intervention('PxV for PLWH').n_products_used.values[
+                self.df.loc[li].plwh_vaccinations += sim.get_intervention('PxV for PLWH').n_products_used.values[
                         ltt]
 
             # Age outputs

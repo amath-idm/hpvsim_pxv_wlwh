@@ -93,12 +93,14 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
 
-    # pars['hiv_pars']['art_failure_prob'] = 0.1
+    pars['hiv_pars']['art_failure_prob'] = 0.1
 
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
-    interventions += adjust_hiv_death(hiv_death_adj)
+    # interventions += adjust_hiv_death(hiv_death_adj)
+
+    interventions += adjust_hiv_death(years=[1985,2000,2010], hiv_mort_adj=[1,1,1.5])
 
     if not calib:
         if len(vx_intv):
@@ -221,52 +223,47 @@ if __name__ == '__main__':
 
     sim.run()
 
-
     # New infections by age and sex
-    simres = sim.results
+    simres = sc.dcp(sim.results)
     years = simres['year']
     year_ind = sc.findinds(years, 1985)[0]
     rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
-
     title_dict = dict(
         female_hiv_prevalence='HIV prevalence, females 15+',
         hiv_incidence='HIV incidence',
         art_coverage='ART coverage',
     )
     years = years[year_ind:]
-    fig, axes = pl.subplots(1, 3, figsize=(14, 6))
-    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']
+    fig, axes = pl.subplots(1, 2, figsize=(8, 4))
+    to_plot = ['female_hiv_prevalence', 'art_coverage']
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-
         result = simres[val][year_ind:]
-        if val in ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']:
-            result *= 100
         if iv == 0:
-            ax.plot(years, result, label='HPVsim')
+            ax.plot(years, 100 * result, label='HPVsim')
         else:
-            ax.plot(years, result)
-
-        if val in rsa_df.columns:
-            if iv == 0:
-                ax.scatter(years, 100 * rsa_df[val][:-10], label='Thembisa', color='grey')
-            else:
-                ax.scatter(years, 100 * rsa_df[val][:-10], color='grey')
-
+            ax.plot(years, 100 * result)
+        thembisa_val_lb = f'{val}_lb'
+        thembisa_val_ub = f'{val}_ub'
+        if iv == 0:
+            ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', label='Thembisa,\n95% uncertainty',
+                       color='grey')
+            ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
+        else:
+            ax.scatter(years, 100 * rsa_df[thembisa_val_lb][:-10], marker='_', color='grey')
+            ax.scatter(years, 100 * rsa_df[thembisa_val_ub][:-10], marker='_', color='grey')
         ax.set_title(title_dict[val])
         if iv == 0:
             ax.legend(title='Source')
-
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)
-
     fig.tight_layout()
-    fig.show()
-    # fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
-    # sc.savefig(fig_name, dpi=100)
+    fig_name = f'figures/hiv_fit_{location}.png'
+    sc.savefig(fig_name, dpi=100)
+
     from scipy.stats import weibull_min
     n_sample = 1000
-    fig, axes = pl.subplots(1,2, figsize=(12,12))
+    fig, axes = pl.subplots(1,2, figsize=(8,8))
     for i, adjust in enumerate([1, 2]):
         ax=axes[i]
         for age in [15, 20, 30, 40]:
