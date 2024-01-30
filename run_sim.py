@@ -93,6 +93,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
 
+    # pars['hiv_pars']['art_failure_prob'] = 0.1
 
     # Analyzers
     analyzers = sc.autolist()
@@ -198,7 +199,7 @@ if __name__ == '__main__':
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     analyzer=an.prop_exposed(years=[2020])
-    hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+    hiv_datafile = ['data/hiv_incidence_south_africa_sens.csv',
                     'data/south_africa_female_hiv_mortality.csv',
                     'data/south_africa_male_hiv_mortality.csv']
     # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
@@ -213,63 +214,56 @@ if __name__ == '__main__':
                    vx_intv=[],
                    hiv_datafile=hiv_datafile,
                    art_datafile=art_datafile,
-                   end=2030,
+                   end=2020,
                    n_agents=50e3,
                    hiv_death_adj=1
                    )
 
     sim.run()
 
-    sim.plot(to_plot=['asr_cancer_incidence', 'cancers'])
-    sim.plot(to_plot=['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv'])
-    sim.plot(to_plot=['female_hiv_prevalence', 'art_coverage'])
 
     # New infections by age and sex
-    fig, axes = pl.subplots(1, 2, figsize=(12, 8))
     simres = sim.results
     years = simres['year']
     year_ind = sc.findinds(years, 1985)[0]
-    sdms = []
-    for sex in ['female', 'male']:
-        sim_data = pd.DataFrame(simres[f'{sex}_hiv_infections_by_age'][:, year_ind:].T,
-                                index=pd.Index(years[year_ind:], name='Year'), columns=sim.pars['age_bin_edges'][:-1])
-        sdm = pd.melt(sim_data.reset_index(), id_vars=['Year'], var_name='Age', value_name='HIV Infections')
-        sdm['AgeBin'] = pd.cut(sdm['Age'], bins=sim.pars['age_bin_edges'], include_lowest=True, right=False)
-        sdm['Sex'] = 'f' if sex == 'female' else 'm'
-        sdm['Source'] = 'HPVsim'
-        sdms.append(sdm)
-    sdm = pd.concat(sdms)
-    hiv = pd.read_csv(hiv_datafile[0])
-    hiv['AgeBin'] = pd.cut(hiv['Age'], bins=sim.pars['age_bin_edges'], include_lowest=True, right=False)
-    x = hiv.groupby(['Year', 'AgeBin', 'Sex'])['Incidence'].mean().reset_index().sort_values(
-        by=['Sex', 'AgeBin']).reset_index()
-    hiv_infections = []
-    for sex in ['females', 'males']:
-        pop_data = pd.DataFrame((simres[f'n_{sex}_no_hiv_alive_by_age'][:, year_ind:]).T, index=years[year_ind:],
-                                columns=sim.pars['age_bin_edges'][:-1])
-        pop_data = pop_data.melt(ignore_index=False)
-        sex_label = 'f' if sex == 'females' else 'm'
-        hiv_infections_this_sex = x[x['Sex'] == sex_label]['Incidence'].values * pop_data['value'].values
-        hiv_infections += list(hiv_infections_this_sex)
-    x['HIV Infections'] = hiv_infections
-    x['Source'] = 'Thembisa'
-    cols = ['Year', 'AgeBin', 'Sex', 'HIV Infections', 'Source']
-    byage = pd.concat([sdm[cols], x[cols]], ignore_index=True)
+    rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
 
-    for i_s, sex in enumerate(['f', 'm']):
-        ax = axes[i_s]
-        byage_to_plot = byage[byage['Sex'] == sex]
-        sns.lineplot(data=byage_to_plot, x='Year', y='HIV Infections', hue='AgeBin', style='Source', palette='Set1',
-                     ax=ax)
-        sex_label = 'Female' if sex == 'f' else 'Male'
-        ax.set_title(f'{sex_label}')
+    title_dict = dict(
+        female_hiv_prevalence='HIV prevalence, females 15+',
+        hiv_incidence='HIV incidence',
+        art_coverage='ART coverage',
+    )
+    years = years[year_ind:]
+    fig, axes = pl.subplots(1, 3, figsize=(14, 6))
+    to_plot = ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']
+    for iv, ax in enumerate(axes.flatten()):
+        val = to_plot[iv]
 
-    axes[0].get_legend().remove()
-    axes[1].legend(bbox_to_anchor=(1.05, 1), ncol=1)
-    fig.suptitle(f'HIV infections')
+        result = simres[val][year_ind:]
+        if val in ['female_hiv_prevalence', 'hiv_incidence', 'art_coverage']:
+            result *= 100
+        if iv == 0:
+            ax.plot(years, result, label='HPVsim')
+        else:
+            ax.plot(years, result)
+
+        if val in rsa_df.columns:
+            if iv == 0:
+                ax.scatter(years, 100 * rsa_df[val][:-10], label='Thembisa', color='grey')
+            else:
+                ax.scatter(years, 100 * rsa_df[val][:-10], color='grey')
+
+        ax.set_title(title_dict[val])
+        if iv == 0:
+            ax.legend(title='Source')
+
+        ax.set_ylim(bottom=0)
+        sc.SIticks(ax)
+
     fig.tight_layout()
     fig.show()
-
+    # fig_name = f'{figfolder}/hiv_time_series_{location}{filestem}.png'
+    # sc.savefig(fig_name, dpi=100)
     from scipy.stats import weibull_min
     n_sample = 1000
     fig, axes = pl.subplots(1,2, figsize=(12,12))
