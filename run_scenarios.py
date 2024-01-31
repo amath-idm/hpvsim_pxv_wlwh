@@ -224,7 +224,7 @@ if __name__ == '__main__':
         location = 'south africa'
 
         # for hiv_death_adj, label in zip([1, 1.5], ['','_1.5xmortredux']):
-        for hiv_death_adj, label in zip([1], ['_incredux']):
+        for hiv_death_adj, label in zip([1], ['_increduxv2']):
 
             vx_coverage = [0, 0.2, 0.4, 0.8]
             plwh = [False, True]
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         location = 'south africa'
 
 
-        for sens in ['', '_1.5xmortredux']:
+        for sens in ['', '_1.5xmortredux', '_incredux']:
 
             ut.plot_impact(
                 location=location,
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['', '_1.5xmortredux']
+            filestems=['', '_1.5xmortredux', '_incredux']
         )
 
         ut.plot_impact_combined(

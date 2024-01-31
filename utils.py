@@ -302,9 +302,9 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
     for filestem in filestems:
         df = sc.loadobj(f'{resfolder}/{location}_results{calib_filestem}{filestem}.obj')
         if filestem == '':
-            df['mort_redux'] = 'None'
+            df['sens'] = 'None'
         else:
-            df['mort_redux'] = filestem
+            df['sens'] = filestem
         dfs.append(df)
     bigdf = pd.concat(dfs)
 
@@ -327,13 +327,15 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
                ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
-        for i_redux, mort_redux in enumerate(filestems):
-            if mort_redux== '':
-                mort_redux = 'None'
-                mort_label = 'Faster'
+        for i_redux, sens in enumerate(filestems):
+            if sens== '':
+                sens = 'None'
+                mort_label = 'None'
+            elif 'mortredux' in sens:
+                mort_label = 'Slower to HIV mortality'
             else:
-                mort_label = 'Slower'
-            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & (bigdf.mort_redux == mort_redux)
+                mort_label = 'Lower projected incidence'
+            df = bigdf[(bigdf.vx_coverage == routine_coverage) & (bigdf.plwh == plwh) & (bigdf.sens == sens)
                        & bigdf.rel_imm == 1]
             years = np.array(df['year'])[ys:ye]
 
@@ -390,7 +392,7 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
                         ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
                 ax.set_title(title_dict[val])
             if iv == 0:
-                ax.legend(title='Time to HIV mortality')
+                ax.legend(title='Sensitivity')
 
             if iv == 1:
                 ax.legend(title='Source')
