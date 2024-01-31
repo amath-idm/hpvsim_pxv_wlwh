@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    'run_scenarios',
-    # 'plot_scenarios',
+    # 'run_scenarios',
+    'plot_scenarios',
 
 ]
 
@@ -270,14 +270,14 @@ if __name__ == '__main__':
             routine_coverage=0,
             plwh=False,
             calib_filestem='_jan28',
-            filestems=['', '_1.5xmortredux', '_incredux']
+            filestems=['_1.5xmortredux', '',  '_incredux']#v2']
         )
 
         ut.plot_impact_combined(
             location=location,
             routine_coverage=[0.2, 0.4, 0.8],
             calib_filestem='_jan28',
-            filestems=['', '_1.5xmortredux']#, '2xmortredux']
+            filestems=['_1.5xmortredux', '', '_incredux']#v2']
         )
 
 

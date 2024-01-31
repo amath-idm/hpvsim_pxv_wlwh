@@ -322,15 +322,15 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
 
     rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
 
-    fig, axes = pl.subplots(2, 2, figsize=(12, 12))
-    to_plot = ['female_hiv_prevalence', 'art_coverage', ['cancers_with_hiv', 'cancers'],
+    fig, axes = pl.subplots(3, 1, figsize=(10, 10), sharex=True)
+    to_plot = ['female_hiv_prevalence', ['cancers_with_hiv', 'cancers'],
                ['cancer_incidence_with_hiv', 'cancer_incidence_no_hiv']]
     for iv, ax in enumerate(axes.flatten()):
         val = to_plot[iv]
         for i_redux, sens in enumerate(filestems):
             if sens== '':
                 sens = 'None'
-                mort_label = 'None'
+                mort_label = 'Baseline'
             elif 'mortredux' in sens:
                 mort_label = 'Slower to HIV mortality'
             else:
@@ -363,7 +363,7 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
                     ax.fill_between(years[4:], low, high, color=colors[i_redux], alpha=0.3)
                 title = 'Cancer incidence' if 'incidence' in val_to_plot else 'Cancers'
                 ax.set_title(title)
-                ax.legend()
+                ax.legend(fontsize=14)
             else:
                 result = np.array(df[val])[ys:ye]
                 low = np.array(df[f'{val}_low'])[ys:ye]
@@ -374,28 +374,15 @@ def plot_hiv_ts_combined(location, routine_coverage, plwh, calib_filestem, files
                     high *= 100
                 if iv == 0:
                     ax.plot(years, result, color=colors[i_redux], label=mort_label)
-                elif iv == 1:
-                    if i_redux == 0:
-                        ax.plot(years, result, label='HPVsim', color=colors[i_redux])
-                    else:
-                        ax.plot(years, result, color=colors[i_redux])
+
                 else:
                     ax.plot(years, result, color=colors[i_redux])
                 ax.fill_between(years, low, high, alpha=0.3, color=colors[i_redux])
                 if val in rsa_df.columns:
-                    if iv == 1:
-                        if i_redux==0:
-                            ax.scatter(years[:-69], 100 * rsa_df[val], label='Thembisa', color='grey')
-                        else:
-                            ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
-                    else:
-                        ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
+                    ax.scatter(years[:-69], 100 * rsa_df[val], color='grey')
                 ax.set_title(title_dict[val])
             if iv == 0:
-                ax.legend(title='Sensitivity')
-
-            if iv == 1:
-                ax.legend(title='Source')
+                ax.legend(title='HIV projections', fontsize=14, title_fontsize=16)
 
         ax.set_ylim(bottom=0)
         sc.SIticks(ax)
@@ -418,16 +405,16 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
     for filestem in filestems:
         df = sc.loadobj(f'{resfolder}/{location}_results{calib_filestem}{filestem}.obj')
         if filestem == '':
-            df['mort_redux'] = 'None'
+            df['sens'] = 'None'
         else:
-            df['mort_redux'] = filestem
+            df['sens'] = filestem
         dfs.append(df)
 
         econdf = sc.loadobj(f'{resfolder}/{location}_econ{calib_filestem}{filestem}.obj')
         if filestem == '':
-            econdf['mort_redux'] = 'None'
+            econdf['sens'] = 'None'
         else:
-            econdf['mort_redux'] = filestem
+            econdf['sens'] = filestem
         econdfs.append(econdf)
     bigdf = pd.concat(dfs)
     econdf = pd.concat(econdfs)
@@ -442,31 +429,33 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
     dfs = sc.autolist()
     for routine_cov in routine_coverage:
         mortlabels=[]
-        for i_redux, mort_redux in enumerate(filestems):
-            if mort_redux== '':
-                mort_redux = 'None'
-                mort_label = 'Faster'
+        for i_redux, sens in enumerate(filestems):
+            if sens == '':
+                sens = 'None'
+                mort_label = 'Baseline'
+            elif 'mortredux' in sens:
+                mort_label = 'Slower to HIV mortality'
             else:
-                mort_label = 'Slower'
+                mort_label = 'Lower projected incidence'
             mortlabels.append(mort_label)
             summary_df = pd.DataFrame()
-            plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == True)]
-            df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.mort_redux==mort_redux) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == False)]
+            plwh_df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.sens==sens) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == True)]
+            df = bigdf[(bigdf.vx_coverage == routine_cov) & (bigdf.sens==sens) & (bigdf.rel_imm == rel_imm_scen) & (bigdf.plwh == False)]
 
-            econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
+            econdf_cancers = econdf[(econdf.vx_coverage == routine_cov) & (econdf.sens==sens)& (econdf.rel_imm == rel_imm_scen) & (
                         econdf.plwh == False)].groupby('year')[
                 ['new_cancers', 'new_cancer_deaths']].sum()
 
-            econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (
+            econdf_ages = econdf[(econdf.vx_coverage == routine_cov) & (econdf.sens==sens)& (econdf.rel_imm == rel_imm_scen) & (
                         econdf.plwh == False)].groupby('year')[
                 ['av_age_cancer_deaths', 'av_age_cancers']].mean()
             econdf_plwh_cancers = econdf[
-                (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux)& (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
+                (econdf.vx_coverage == routine_cov) & (econdf.sens==sens)& (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
                 'year')[
                 ['new_cancers', 'new_cancer_deaths', 'plwh_vaccinations']].sum()
 
             econdf_plwh_ages = econdf[
-                (econdf.vx_coverage == routine_cov) & (econdf.mort_redux==mort_redux) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
+                (econdf.vx_coverage == routine_cov) & (econdf.sens==sens) & (econdf.rel_imm == rel_imm_scen) & (econdf.plwh == True)].groupby(
                 'year')[
                 ['av_age_cancer_deaths', 'av_age_cancers']].mean()
 
@@ -508,7 +497,7 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             summary_df['cancers_averted/dose'] = [1000 * (np.sum(np.array(df['cancers'])[ys:ye]) - np.sum(np.array(plwh_df['cancers'])[ys:ye])) / additional_vaccinations]
             summary_df['cancer_deaths_averted/dose'] = [1000 * (np.sum(np.array(df['cancer_deaths'])[ys:ye]) - np.sum(np.array(plwh_df['cancer_deaths'])[ys:ye])) / additional_vaccinations]
             summary_df['vx_coverage'] = routine_cov
-            summary_df['Time to HIV mortality'] = mort_label
+            summary_df['Sensitivity'] = mort_label
             dfs += summary_df
 
     final_df = pd.concat(dfs)
@@ -536,15 +525,16 @@ def plot_impact_combined(location, routine_coverage, calib_filestem, filestems):
             final_df,
             values=val,
             index="vx_coverage",
-            columns="Time to HIV mortality"
+            columns="Sensitivity"
         )
 
         df_pivot = df_pivot.reindex(mortlabels, axis=1)
         df_pivot.plot(kind="bar", ax=ax, color=colors)
         ax.set_ylabel(label_dict[val])
-        ax.get_legend().remove()
+        if i>0:
+            ax.get_legend().remove()
         sc.SIticks(ax)
-
+    axes[0,0].legend(title='HIV projections', fontsize=12, title_fontsize=12)
     axes[2, 0].set_xlabel('Routine Vaccine Coverage')
     axes[2, 1].set_xlabel('Routine Vaccine Coverage')
     axes[2,2].set_xlabel('Routine Vaccine Coverage')
