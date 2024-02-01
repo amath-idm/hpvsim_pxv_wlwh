@@ -124,7 +124,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 #%% Simulation running functions
 
 def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_pars=None, econ_analyzer=False,
-            debug=0, seed=0, label=None, meta=None, verbose=0.1, end=None,
+            debug=0, seed=0, label=None, meta=None, verbose=0.1, end=None, hivinc_datafile=None,
             do_save=False, die=False):
     ''' Assemble the parts into a complete sim and run it '''
 
@@ -136,9 +136,12 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_p
     if debug: msg += ' IN DEBUG MODE'
     print(msg)
     dflocation = location.replace(' ', '_')
+
+    if hivinc_datafile is None:
+        hivinc_datafile = 'hiv_incidence_south_africa'
     # Make arguments
     if location == 'south africa':
-        hiv_datafile = ['data/hiv_incidence_south_africa_sens_3.csv',
+        hiv_datafile = [f'data/{hivinc_datafile}.csv',
                         'data/south_africa_female_hiv_mortality.csv',
                         'data/south_africa_male_hiv_mortality.csv']
         # art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',

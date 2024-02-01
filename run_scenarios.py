@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
@@ -70,7 +70,7 @@ def make_msims(sims, use_mean=True, save_msims=False):
     return msim
 
 def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_death_adj=1, calib_filestem='', filestem='', # Input data
-              debug=0, n_seeds=2, verbose=-1# Sim settings
+              hivinc_datafile=None, debug=0, n_seeds=2, verbose=-1# Sim settings
               ):
     '''
     Run all screening/triage product scenarios for a given location
@@ -105,7 +105,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_deat
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
     kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
-                  econ_analyzer=True, n_agents=50e3, hiv_death_adj=hiv_death_adj)
+                  econ_analyzer=True, n_agents=50e3, hiv_death_adj=hiv_death_adj, hivinc_datafile=hivinc_datafile)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
     # Rearrange sims
@@ -223,16 +223,20 @@ if __name__ == '__main__':
         # Construct the scenarios
         location = 'south africa'
 
-        # for hiv_death_adj, label in zip([1, 1.5], ['','_1.5xmortredux']):
-        for hiv_death_adj, label in zip([1], ['_increduxv2']):
+        for hiv_death_adj, label in zip([1, 1.5, 1], ['','_1.5xmortredux', '_incredux']):
+        # for hiv_death_adj, label in zip([1], ['_increduxv2']):
+
+            if 'incredux' in label:
+                hiv_inc_filename = 'hiv_incidence_south_africa_sens_2'
+            else:
+                hiv_inc_filename = 'hiv_incidence_south_africa_sens'
 
             vx_coverage = [0, 0.2, 0.4, 0.8]
             plwh = [False, True]
             rel_imm = [1]
 
             alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
-                                     debug=debug, calib_filestem='_jan28', filestem=label)
-
+                                     debug=debug, calib_filestem='_jan28', filestem=label, hivinc_datafile=hiv_inc_filename)
 
 
 

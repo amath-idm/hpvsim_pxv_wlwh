@@ -38,11 +38,16 @@ def get_vx_intvs(routine_start_year=2023, catch_up_year=2023, vx_coverage=0.9, a
         plwh_prod = hpv.default_vx(prod_name='nonavalent')
         plwh_prod.imm_init['par1'] *= rel_imm_lt200
 
+        age_range = [16,30]
+        len_age_range = (age_range[1] - age_range[0]) / 2
+
+        model_annual_vx_prob = 1 - (1 - uptake) ** (1 / len_age_range)
+
         paired_vx = hpv.routine_vx(
-            prob=uptake,
+            prob=model_annual_vx_prob,
             start_year=routine_start_year,
             eligibility=px_eligible,
-            age_range=(16,30),
+            age_range=age_range,
             product=plwh_prod,
             label='PxV for PLWH'
         )
