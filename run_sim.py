@@ -232,9 +232,9 @@ if __name__ == '__main__':
     year_ind = sc.findinds(years, 1985)[0]
     rsa_df = pd.read_csv('data/RSA_data.csv').set_index('Unnamed: 0').T
     title_dict = dict(
-        female_hiv_prevalence='HIV prevalence, females 15+',
+        female_hiv_prevalence='HIV prevalence (%), females 15+',
         hiv_incidence='HIV incidence',
-        art_coverage='ART coverage',
+        art_coverage='ART coverage (%)',
     )
     years = years[year_ind:]
     fig, axes = pl.subplots(1, 3, figsize=(10, 4))
@@ -248,7 +248,7 @@ if __name__ == '__main__':
                 result = np.convolve(list(result), np.ones(5), "valid") / 5
                 ax.plot(years[4:], result, label=label)
             ax.legend()
-            ax.set_title('Cancer incidence')
+            ax.set_title('Cancer incidence (per 100k)')
         else:
 
             result = simres[val][year_ind:]
