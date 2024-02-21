@@ -54,7 +54,8 @@ save_plots = True
 
 #%% Simulation creation functions
 def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
-        art_datafile=None, vx_intv=None, hiv_death_adj=1, econ_analyzer=False, analyzer=None, end=None, seed=1):
+             art_datafile=None, vx_intv=None, hiv_death_adj=1, econ_analyzer=False, analyzer=None, end=None, seed=1,
+             art_sens=False):
     ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
@@ -116,6 +117,11 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
+
+    if art_sens:
+        sim.hivsim.cd4_lb = [0, 5e3] # Lower bound for CD4 states
+        sim.hivsim.cd4_ub = [5e6, 5e6] # Upper bound for CD4 states
+
     return sim
 
 

@@ -24,8 +24,8 @@ import run_sim as rs
 
 # CONFIGURATIONS TO BE SET BY USERS BEFORE RUNNING
 to_run = [
-    # 'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
-    'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
+    'run_calibration',  # Make sure this is uncommented if you want to _run_ the calibrations (usually on VMs)
+    # 'plot_calibration',  # Make sure this is uncommented if you want to _plot_ the calibrations (usually locally)
 ]
 debug = False  # If True, this will do smaller runs that can be run locally for debugging
 do_save = True
@@ -75,7 +75,7 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         hiv_datafile = None
         art_datafile = None
 
-    sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True)
+    sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True, art_sens=True)
     datafiles = [
         f'data/{dflocation}_cancer_cases.csv', #Globocan
         # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
@@ -126,11 +126,11 @@ def run_calib(location=None, n_trials=None, n_workers=None,
     hiv_pars = dict(
         rel_sus=dict(
             lt200=[2.25, 2, 5, 0.25],
-            gt200=[2.25, 2, 4, 0.25]
+            # gt200=[2.25, 2, 4, 0.25]
         ),
         rel_sev=dict(
             lt200=[1.5, 1.25, 5, 0.25],
-            gt200=[1.5, 1.25, 3, 0.25]
+            # gt200=[1.5, 1.25, 3, 0.25]
         ),
         # rel_reactivation_prob=[3, 2, 5, 0.5]
     )
@@ -194,7 +194,7 @@ if __name__ == '__main__':
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
-        filestem = '_jan28'
+        filestem = '_feb21_artsens'
         for location in locations:
             sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
                                    do_save=do_save, do_plot=False, filestem=filestem)
