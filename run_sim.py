@@ -95,7 +95,9 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
         pars = sc.mergedicts(pars, calib_pars)
 
     pars['hiv_pars']['art_failure_prob'] = 0.1
-
+    if art_sens:
+        pars['hiv_pars']['cd4_lb'] = [0, 5e3] # Lower bound for CD4 states
+        pars['hiv_pars']['cd4_ub'] = [5e6, 5e6] # Upper bound for CD4 states
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
@@ -118,10 +120,7 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
 
-    if art_sens:
-        sim.initialize()
-        sim.hivsim.cd4_lb = [0, 5e3] # Lower bound for CD4 states
-        sim.hivsim.cd4_ub = [5e6, 5e6] # Upper bound for CD4 states
+
 
     return sim
 
