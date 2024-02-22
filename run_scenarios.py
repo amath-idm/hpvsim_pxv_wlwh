@@ -81,6 +81,11 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_deat
     count = 0
     n_sims = len(vx_coverage) * len(plwh) * len(rel_imm) * n_seeds
 
+    if 'artsens' in filestem:
+        art_sens=True
+    else:
+        art_sens=False
+
     for i_r, routine_cov in enumerate(vx_coverage):
         for i_pl, plwh_scen in enumerate(plwh):
             for i_ri, rel_imm_scen in enumerate(rel_imm):
@@ -104,7 +109,7 @@ def run_scens(location=None, vx_coverage=None, plwh=None, rel_imm=None, hiv_deat
     sc.heading(f'Running {len(ikw)} scenario sims...')
     dflocation = location.replace(' ', '_')
     calib_pars = sc.loadobj(f'results/{dflocation}_pars{calib_filestem}.obj')
-    kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location,
+    kwargs = dict(calib_pars=calib_pars, verbose=verbose, debug=debug, location=location, art_sens=art_sens,
                   econ_analyzer=True, n_agents=50e3, hiv_death_adj=hiv_death_adj, hivinc_datafile=hivinc_datafile)
     all_sims = sc.parallelize(rs.run_sim, iterkwargs=ikw, kwargs=kwargs)
 
@@ -235,8 +240,10 @@ if __name__ == '__main__':
             plwh = [False, True]
             rel_imm = [1]
 
+            label+='_artsens'
+
             alldf, msims = run_scens(vx_coverage=vx_coverage, plwh=plwh, rel_imm=rel_imm, hiv_death_adj=hiv_death_adj, n_seeds=n_seeds, location=location,
-                                     debug=debug, calib_filestem='_jan28', filestem=label, hivinc_datafile=hiv_inc_filename)
+                                     debug=debug, calib_filestem='_feb21_artsens', filestem=label, hivinc_datafile=hiv_inc_filename)
 
 
 
