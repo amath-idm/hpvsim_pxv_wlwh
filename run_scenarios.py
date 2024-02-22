@@ -32,8 +32,8 @@ import analyzers as an
 
 # Comment out to not run
 to_run = [
-    # 'run_scenarios',
-    'plot_scenarios',
+    'run_scenarios',
+    # 'plot_scenarios',
 
 ]
 
