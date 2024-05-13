@@ -112,6 +112,31 @@ if __name__ == '__main__':
 
         if do_save: msim.save('results/vs.msim')
 
+        if do_process:
+
+            metrics = ['year', 'asr_cancer_incidence', 'cancers', 'cancer_deaths']
+
+            # Process results
+            vx_scenarios = make_vx_scenarios(coverage_arr=coverage_arr, rel_imm_arr=rel_imm_arr)
+            hiv_scens = make_hiv_scenarios()
+            scen_labels = list(vx_scenarios.keys()) + list(hiv_scens.keys())
+            mlist = msim.split(chunks=len(scen_labels))
+
+            msim_dict = sc.objdict()
+            for si, scen_label in enumerate(scen_labels):
+                reduced_sim = mlist[si].reduce(output=True)
+                mres = sc.objdict({metric: reduced_sim.results[metric] for metric in metrics})
+                mres['dalys'] = reduced_sim.get_analyzer().dalys
+                mres['daly_years'] = reduced_sim.get_analyzer().years
+
+                for ii, intv in enumerate(reduced_sim['interventions']):
+                    intv_label = intv.label
+                    mres[intv_label] = reduced_sim['interventions'][ii].n_products_used
+
+                msim_dict[scen_label] = mres
+
+            sc.saveobj(f'results/vx_scens.obj', msim_dict)
+
 
     # # Plot results of scenarios
     # if 'plot_scenarios' in to_run:

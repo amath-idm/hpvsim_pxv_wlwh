@@ -29,27 +29,7 @@ def set_font(size=None, font='Libertinus Sans'):
     return
 
 
-def process_country_files(locations, top_results=100, do_save=True):
-    '''
-    Read in all country files and create a master dataframe
-    '''
-
-    dfs = []
-    for i, location in enumerate(locations):
-        file = f'{resfolder}/{location}_calib.obj'
-        calib = sc.loadobj(file)
-        thisdf = calib.df.sort_values(by=['mismatch'])[:top_results]
-        thisdf['location'] = f'{location.capitalize()}'
-        dfs.append(thisdf)
-
-    all_calib_pars = pd.concat(dfs)
-    if do_save:
-        sc.save(f'{resfolder}/all_calib_pars.obj', all_calib_pars)
-
-    return all_calib_pars
-
-
-def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=False, filestem=''):
+def plot_bars_impact(location=None, routine_coverage=None, rel_imm=None, discounting=False, filestem=''):
     '''
     Plot the residual burden of HPV under different scenarios
     '''
@@ -166,81 +146,6 @@ def plot_impact(location=None, routine_coverage=None, rel_imm=None, discounting=
 
     return
 
-
-def make_datafiles(locations):
-    ''' Get the relevant datafiles for the selected locations '''
-    datafiles = dict()
-    asr_locs            = ['drc', 'ethiopia', 'kenya', 'nigeria', 'tanzania', 'uganda']
-    cancer_type_locs    = ['ethiopia', 'kenya', 'nigeria', 'tanzania', 'india', 'uganda']
-    cin_type_locs       = ['nigeria', 'tanzania', 'india']
-
-    for location in locations:
-        dflocation = location.replace(' ','_')
-        datafiles[location] = [
-            f'data/{dflocation}_cancer_cases.csv',
-        ]
-
-        if location in asr_locs:
-            datafiles[location] += [f'data/{dflocation}_asr_cancer_incidence.csv']
-
-        if location in cancer_type_locs:
-            datafiles[location] += [f'data/{dflocation}_cancer_types.csv']
-
-        if location in cin_type_locs:
-            datafiles[location] += [f'data/{dflocation}_cin_types.csv']
-
-    return datafiles
-
-
-########################################################################
-#%% Other utils
-########################################################################
-def make_msims(sims, use_mean=True, save_msims=False):
-    '''
-    Utility to take a slice of sims and turn it into a multisim
-    '''
-
-    msim = hpv.MultiSim(sims)
-    msim.reduce(use_mean=use_mean)
-    i_sc, i_s = sims[0].meta.inds
-    for s, sim in enumerate(sims):  # Check that everything except seed matches
-        assert i_sc == sim.meta.inds[0]
-        assert (s == 0) or i_s != sim.meta.inds[1]
-    msim.meta = sc.objdict()
-    msim.meta.inds = [i_sc]
-    msim.meta.vals = sc.dcp(sims[0].meta.vals)
-    msim.meta.vals.pop('seed')
-
-    print(f'Processing multisim {msim.meta.vals.values()}...')
-    if save_msims:  # Warning, generates a lot of files!
-        id_str = '_'.join([str(i) for i in msim.meta.inds])
-        msimfile = f'{resfolder}/final_msim{id_str}.msim'
-        msim.save(msimfile)
-
-    return msim
-
-def make_msims_sweeps(sims, use_mean=True, save_msims=False):
-    ''' Take a slice of sims and turn it into a multisim '''
-    msim = hpv.MultiSim(sims)
-    msim.reduce(use_mean=use_mean)
-    i_txs, draw, i_s = sims[0].meta.inds
-    for s,sim in enumerate(sims): # Check that everything except seed matches
-        assert i_txs == sim.meta.inds[0]
-        assert draw == sim.meta.inds[1]
-        assert (s==0) or i_s != sim.meta.inds[2]
-    msim.meta = sc.objdict()
-    msim.meta.inds = [i_txs, draw]
-    msim.meta.eff_vals = sc.dcp(sims[0].meta.eff_vals)
-    msim.meta.vals = sc.dcp(sims[0].meta.vals)
-    msim.meta.vals.pop('seed')
-    print(f'Processing multisim {msim.meta.vals.values()}...')
-
-    if save_msims: # Generates a lot of files!
-        id_str = '_'.join([str(i) for i in msim.meta.inds])
-        msimfile = f'{resfolder}/final_msim{id_str}.msim'
-        msim.save(msimfile)
-
-    return msim
 
 def plot_ts(location=None, routine_coverage=None, plwh=None, filestem=''):
     '''
