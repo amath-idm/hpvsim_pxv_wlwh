@@ -159,7 +159,7 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_p
         end=end,
         hiv_datafile=hiv_datafile,
         art_datafile=art_datafile,
-        art_sens=art_sens
+        art_sens=art_sens,
     )
     sim['rand_seed'] = seed
     sim.label = f'{location}--{seed}'
@@ -206,7 +206,6 @@ if __name__ == '__main__':
         location=location,
         calib_pars=calib_pars,
         analyzers=analyzers,
-        vx_intv=[],
         hiv_datafile=hiv_datafile,
         art_datafile=art_datafile,
         end=2020,
