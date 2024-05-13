@@ -68,7 +68,7 @@ def make_hiv_scenarios():
     return hiv_scens
 
 
-def make_sims(vx_scenarios=None, hiv_scens=None):
+def make_sims(calib_pars=None, vx_scenarios=None, hiv_scens=None):
     """ Set up scenarios """
 
     all_msims = sc.autolist()
@@ -76,7 +76,7 @@ def make_sims(vx_scenarios=None, hiv_scens=None):
         for hiv_name, hiv_scen in hiv_scens.items():
             sims = sc.autolist()
             for seed in range(n_seeds):
-                sim = rs.make_sim(debug=debug, vx_intv=vx_intv, end=2100, seed=seed, **hiv_scen)
+                sim = rs.make_sim(calib_pars=calib_pars, debug=debug, vx_intv=vx_intv, end=2100, seed=seed, **hiv_scen)
                 sim.label = f'{hiv_name}, {vx_name}'
                 sims += sim
             all_msims += hpv.MultiSim(sims)
@@ -86,9 +86,9 @@ def make_sims(vx_scenarios=None, hiv_scens=None):
     return msim
 
 
-def run_sims(vx_scenarios=None, hiv_scens=None, verbose=0.2):
+def run_sims(calib_pars=None, vx_scenarios=None, hiv_scens=None, verbose=0.2):
     """ Run the simulations """
-    msim = make_sims(vx_scenarios=vx_scenarios, hiv_scens=hiv_scens)
+    msim = make_sims(calib_pars=calib_pars, vx_scenarios=vx_scenarios, hiv_scens=hiv_scens)
     msim.run(verbose=verbose)
     return msim
 
@@ -96,20 +96,20 @@ def run_sims(vx_scenarios=None, hiv_scens=None, verbose=0.2):
 # %% Run as a script
 if __name__ == '__main__':
 
-    T = sc.timer()
     do_run = True
     do_save = True
     do_process = False
 
     coverage_arr = [0.2, 0.4, 0.8]
     rel_imm_arr = None  #[1]
+    calib_pars = sc.loadobj(f'results/south_africa_pars_feb21_artsens.obj')
 
     # Run scenarios (usually on VMs, runs n_seeds in parallel over M scenarios)
     if do_run:
 
         vx_scenarios = make_vx_scenarios(coverage_arr=coverage_arr, rel_imm_arr=rel_imm_arr)
         hiv_scens = make_hiv_scenarios()
-        msim = run_sims(vx_scenarios=vx_scenarios, hiv_scens=hiv_scens)
+        msim = run_sims(calib_pars=calib_pars, vx_scenarios=vx_scenarios, hiv_scens=hiv_scens)
 
         if do_save: msim.save('results/vs.msim')
 
