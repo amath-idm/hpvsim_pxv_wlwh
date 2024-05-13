@@ -27,11 +27,10 @@ import hpvsim as hpv
 
 # Imports from this repository
 import run_sim as rs
-import utils as ut
 from interventions import Vaccination
 
 # Comment out to not run
-debug = 0
+debug = 1
 n_seeds = [3, 1][debug]  # How many seeds to use for stochasticity in projections
 
 
@@ -100,7 +99,7 @@ if __name__ == '__main__':
     do_save = True
     do_process = False
 
-    coverage_arr = [0.2, 0.4, 0.8]
+    coverage_arr = [0.2]  #, 0.4, 0.8]
     rel_imm_arr = None  #[1]
     calib_pars = sc.loadobj(f'results/south_africa_pars_feb21_artsens.obj')
 
