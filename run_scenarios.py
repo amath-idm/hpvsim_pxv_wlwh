@@ -36,7 +36,7 @@ n_seeds = [3, 1][debug]  # How many seeds to use for stochasticity in projection
 
 
 # %% Functions
-def make_vx_scenarios(coverage_arr, rel_imm_arr=None):
+def make_vx_scenarios(coverage_arr=None, rel_imm_arr=None):
 
     vx_scenarios = dict()
 
@@ -101,15 +101,12 @@ if __name__ == '__main__':
     do_save = True
     do_process = False
 
-    coverage_arr = [0, 0.2, 0.4, 0.8]
+    coverage_arr = [0.2, 0.4, 0.8]
     rel_imm_arr = None  #[1]
 
     # Run scenarios (usually on VMs, runs n_seeds in parallel over M scenarios)
     if do_run:
 
-        T = sc.timer()
-
-        # Dimensions to vary: vaccination strategy, HIV incidence projections, and HIV mortality assumptions
         vx_scenarios = make_vx_scenarios(coverage_arr=coverage_arr, rel_imm_arr=rel_imm_arr)
         hiv_scens = make_hiv_scenarios()
         msim = run_sims(vx_scenarios=vx_scenarios, hiv_scens=hiv_scens)
