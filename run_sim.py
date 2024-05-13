@@ -1,31 +1,25 @@
-'''
+"""
 Define the HPVsim simulations for South Africa that are used as
 the basis for the calibration, scenarios, and sweeps.
+"""
 
-By default, all locations are run. To not run a location, comment out the line
-below. For all three locations, this script should take 1-5 minutes to run.
-'''
 
 # Additions to handle numpy multithreading
 import os
-
-import pandas as pd
-
 os.environ.update(
     OMP_NUM_THREADS='1',
     OPENBLAS_NUM_THREADS='1',
     NUMEXPR_NUM_THREADS='1',
     MKL_NUM_THREADS='1',
 )
+
 # Standard imports
 import numpy as np
 import sciris as sc
 import hpvsim as hpv
 import pandas as pd
-import seaborn as sns
 
 # Imports from this repository
-import pars_data as dp
 import pars_scenarios as sp
 from interventions import adjust_hiv_death
 import utils as ut
@@ -33,77 +27,92 @@ import analyzers as an
 import matplotlib.pylab as pl
 
 
-
-#%% Settings and filepaths
-
-# Locations -- comment out a line to not run
-locations = [
-    'south africa'
-]
+# %% Settings and filepaths
 
 # Debug switch
-debug = 0 # Run with smaller population sizes and in serial
-do_shrink = True # Do not keep people when running sims (saves memory)
+debug = 1  # Run with smaller population sizes and in serial
+do_shrink = True  # Do not keep people when running sims (saves memory)
 
 # Save settings
 do_save = True
 save_plots = True
 
 
+# %% Simulation creation functions
+def make_sim(
+    location='south africa', calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
+    art_datafile=None, vx_intv=None, hiv_death_adj=1, econ_analyzer=False, analyzer=None, end=None, seed=1,
+    art_sens=False):
 
-
-#%% Simulation creation functions
-def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
-             art_datafile=None, vx_intv=None, hiv_death_adj=1, econ_analyzer=False, analyzer=None, end=None, seed=1,
-             art_sens=False):
-    ''' Define parameters, analyzers, and interventions for the simulation -- not the sim itself '''
     if end is None:
         end = 2100
     if calib:
         end = 2020
 
-    # Parameters
-    pars = dict(
-        n_agents       = [n_agents,1e3][debug],
-        dt             = [0.25,1.0][debug],
-        start          = [1950,1980][debug],
-        end            = end,
-        network        = 'default',
-        location       = location,
-        genotypes      = [16, 18, 'hi5', 'ohr'],
-        f_partners     = dp.f_partners,
-        m_partners     = dp.m_partners,
-        debut          = dp.debut[location],
-        mixing         = dp.mixing[location],
-        layer_probs    = dp.layer_probs[location],
-        init_hpv_dist  = dp.init_genotype_dist[location],
-        init_hpv_prev  = {
-            'age_brackets'  : np.array([  12,   17,   24,   34,  44,   64,    80, 150]),
-            'm'             : np.array([ 0.0, 0.25, 0.6, 0.25, 0.05, 0.01, 0.0005, 0]),
-            'f'             : np.array([ 0.0, 0.35, 0.7, 0.25, 0.05, 0.01, 0.0005, 0]),
-        },
-        condoms        = dict(m=0.01, c=0.1),
-        eff_condoms    = 0.5,
-        ms_agent_ratio = 100,
-        verbose        = 0.0,
-        model_hiv      = True,
-        hiv_pars       = dict(rel_imm=dict(lt200=1,gt200=1))
+    # Initialize parameters and specify run settings
+    pars = sc.objdict(
+        n_agents=[n_agents, 1e3][debug],    # How many agents to run
+        dt=[0.25, 1.0][debug],              # Time step
+        start=[1950, 1980][debug],          # When to start the simulation
+        end=end,                            # When to end the simulation
+        location=location,                  # Location - loads demographic data
+        genotypes=[16, 18, 'hi5', 'ohr'],   # Genotypes to model
+        ms_agent_ratio=100,                 # Multi-scale agent ratio
+        verbose=0.0,                        # How much detail to print while running
+        model_hiv=True,                     # Whether to model HIV
+        hiv_pars=dict(rel_imm=dict(lt200=1, gt200=1))   # TODO: decide whether to keep this
     )
 
+    # Set initial conditions
+    pars.init_hpv_dist=dict(hpv16=0.4, hpv18=0.15, hi5=0.15, ohr=0.3)
+    pars.init_hpv_prev  = dict(
+        age_brackets=np.array([  12,   17,   24,   34,  44,   64,    80, 150]),
+        m=np.array([ 0.0, 0.25, 0.6, 0.25, 0.05, 0.01, 0.0005, 0]),
+        f=np.array([ 0.0, 0.35, 0.7, 0.25, 0.05, 0.01, 0.0005, 0]),
+    )
 
+    # Customize sexual behavior
+    pars.m_partners = dict(     # Proportion of males in concurrent partnerships
+        m=dict(dist='poisson1', par1=0.01),
+        c=dict(dist='poisson1', par1=0.2),
+    )
+    pars.f_partners = dict(     # Proportion of females in concurrent partnerships
+        m=dict(dist='poisson1', par1=0.01),
+        c=dict(dist='poisson1', par1=0.2),
+    )
+    pars.debut = dict(          # Age of sexual debut
+        f=dict(dist='normal', par1=17.7, par2=2.),  # DHS 2013
+        m=dict(dist='normal', par1=18.2, par2=2.)   # No data for males, assumption
+    )
+    pars.condoms = dict(m=0.01, c=0.1),
+    pars.eff_condoms = 0.5,
+    pars.layer_probs = dict(    # Participation in marital and casual relationships
+        m=np.array([
+            [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+            [0, 0, 0, 0.05, 0.25, 0.35, 0.3, 0.2, 0.1, 0.05, 0.01, 0.005, 0.005, 0.001, 0.001, 0.001], # Share of females of each age who are married
+            [0, 0, 0, 0.01, 0.25, 0.35, 0.3, 0.2, 0.1, 0.05, 0.01, 0.005, 0.005, 0.001, 0.001, 0.001]] # Share of males of each age who are married
+        ),
+        c=np.array([
+            [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+            [0, 0, 0.10, 0.7, 0.8, 0.6, 0.6, 0.5, 0.2, 0.05, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01], # Share of females of each age having casual relationships
+            [0, 0, 0.05, 0.7, 0.8, 0.6, 0.6, 0.5, 0.5, 0.4, 0.3, 0.1, 0.05, 0.01, 0.01, 0.01]], # Share of males of each age having casual relationships
+        ),
+    )
+
+    # Merge calibration parameters
     if calib_pars is not None:
         pars = sc.mergedicts(pars, calib_pars)
 
-    pars['hiv_pars']['art_failure_prob'] = 0.1
+    # HIV parameters
+    pars.hiv_pars['art_failure_prob'] = 0.1
     if art_sens:
-        pars['hiv_pars']['cd4_lb'] = [0, 5e3] # Lower bound for CD4 states
-        pars['hiv_pars']['cd4_ub'] = [5e6, 5e6] # Upper bound for CD4 states
+        pars['hiv_pars']['cd4_lb'] = [0, 5e3]       # Lower bound for CD4 states
+        pars['hiv_pars']['cd4_ub'] = [5e6, 5e6]     # Upper bound for CD4 states
+
     # Analyzers
     analyzers = sc.autolist()
     interventions = sc.autolist()
-    # interventions += adjust_hiv_death(hiv_death_adj)
-
-    interventions += adjust_hiv_death(years=[1985,2000,2010], hiv_mort_adj=[1,1,1.5*hiv_death_adj])
+    interventions += adjust_hiv_death(years=[1985,2000,2010], hiv_mort_adj=[1, 1, 1.5*hiv_death_adj])
 
     if not calib:
         if len(vx_intv):
@@ -119,7 +128,6 @@ def make_sim(location=None, calib=False, debug=0, datafile=None, hiv_datafile=No
 
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
-
 
 
     return sim

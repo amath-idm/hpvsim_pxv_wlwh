@@ -21,12 +21,8 @@ screening_start      = dict()
 vaccination_coverage = dict()
 vaccination_start    = dict()
 condoms              = dict()
-init_genotype_dist   = dict()
 
 
-#%% SOUTH AFRICA
-
-init_genotype_dist['south africa'] = dict(hpv16=0.4, hpv18=0.15, hi5=0.15, ohr=0.3)
 
 if use_dhs:
     debut['south africa'] = dict(
