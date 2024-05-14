@@ -38,7 +38,7 @@ save_plots = True
 # %% Simulation creation functions
 def make_sim(
     location='south africa', calib=False, debug=0, datafile=None, hiv_datafile=None, calib_pars=None, n_agents=10e3,
-    art_datafile=None, vx_intv=None, hiv_death_adj=1, analyzers=None, end=None, seed=1,
+    art_datafile=None, vx_intv=None, hiv_death_adj=1, end=None, seed=1,
     art_sens=False):
 
     if end is None:
@@ -112,6 +112,9 @@ def make_sim(
     if not calib:
         interventions += [vx_intv, ScreenTreat()]
 
+    # Analyzers
+    analyzers = [hpv.dalys(start=2020)]
+
     sim = hpv.Sim(pars=pars, analyzers=analyzers, interventions=interventions,
                   datafile=datafile, hiv_datafile=hiv_datafile, art_datafile=art_datafile, rand_seed=seed)
 
@@ -120,7 +123,7 @@ def make_sim(
 
 # %% Simulation running functions
 
-def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_pars=None, analyzers=None,
+def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_pars=None,
             debug=0, seed=0, meta=None, verbose=0.1, end=None, hiv_datafile=None, art_datafile=None,
             do_save=False, art_sens=False):
 
@@ -146,7 +149,6 @@ def run_sim(location=None, vx_intv=None, n_agents=50e3, hiv_death_adj=1, calib_p
         location=location,
         debug=debug,
         vx_intv=vx_intv,
-        analyzers=analyzers,
         n_agents=n_agents,
         hiv_death_adj=hiv_death_adj,
         calib_pars=calib_pars,
@@ -194,14 +196,10 @@ if __name__ == '__main__':
 
         T = sc.timer()
 
-        # Add analyzers and interventions
-        analyzers = [an.prop_exposed(years=[2020])]
-
         # Make sim
         sim = run_sim(
             location=location,
             calib_pars=calib_pars,
-            analyzers=analyzers,
             end=2020,
             n_agents=50e3,
             hiv_death_adj=1,

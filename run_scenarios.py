@@ -1,12 +1,9 @@
-'''
-Run HPVsim scenarios for each location. 
-
-Note: requires an HPC to run with debug=False; with debug=True, should take 5-15 min
-to run.
-'''
+"""
+Run HPVsim scenarios for vaccinating PLHIV against a range of assumptions about HIV
+"""
 
 
-#%% General settings
+# %% General settings
 
 # Additions to handle numpy multithreading
 import os
@@ -18,10 +15,7 @@ os.environ.update(
     MKL_NUM_THREADS='1',
 )
 
-
 # Standard imports
-import numpy as np
-import pandas as pd
 import sciris as sc
 import hpvsim as hpv
 
@@ -29,7 +23,7 @@ import hpvsim as hpv
 import run_sim as rs
 from interventions import Vaccination
 
-# Comment out to not run
+# Run settings
 debug = 1
 n_seeds = [3, 1][debug]  # How many seeds to use for stochasticity in projections
 
@@ -99,8 +93,8 @@ if __name__ == '__main__':
     do_save = True
     do_process = False
 
-    coverage_arr = [0.2]  #, 0.4, 0.8]
-    rel_imm_arr = None  #[1]
+    coverage_arr = [0.2, 0.4, 0.8]
+    rel_imm_arr = None  # [1]
     calib_pars = sc.loadobj(f'results/south_africa_pars_feb21_artsens.obj')
 
     # Run scenarios (usually on VMs, runs n_seeds in parallel over M scenarios)
@@ -136,50 +130,4 @@ if __name__ == '__main__':
                 msim_dict[scen_label] = mres
 
             sc.saveobj(f'results/vx_scens.obj', msim_dict)
-
-
-    # # Plot results of scenarios
-    # if 'plot_scenarios' in to_run:
-    #     location = 'south africa'
-    #
-    #
-    #     for sens in ['', '_1.5xmortredux', '_incredux']:
-    #
-    #         ut.plot_impact(
-    #             location=location,
-    #             routine_coverage=[0.2, 0.4, 0.8],
-    #             rel_imm=[1],#, 0.75, 0.5],
-    #             filestem=f'_jan28{sens}'
-    #         )
-    #
-    #         ut.plot_ts(
-    #             location=location,
-    #             routine_coverage=[0.2, 0.4, 0.8],
-    #             plwh=[True, False],
-    #             filestem=f'_jan28{sens}'
-    #         )
-    #
-    #         ut.plot_hiv_ts(
-    #             location=location,
-    #             routine_coverage=0,
-    #             plwh=False,
-    #             filestem=f'_jan28{sens}'
-    #         )
-    #
-    #
-    #     ut.plot_hiv_ts_combined(
-    #         location=location,
-    #         routine_coverage=0,
-    #         plwh=False,
-    #         calib_filestem='_jan28',
-    #         filestems=['_1.5xmortredux', '',  '_incredux']#v2']
-    #     )
-    #
-    #     ut.plot_impact_combined(
-    #         location=location,
-    #         routine_coverage=[0.2, 0.4, 0.8],
-    #         calib_filestem='_jan28',
-    #         filestems=['_1.5xmortredux', '', '_incredux']#v2']
-    #     )
-    #
 

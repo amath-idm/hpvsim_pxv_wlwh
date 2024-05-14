@@ -94,6 +94,11 @@ class Vaccination(hpv.Intervention):
             intv.apply(sim)
         return
 
+    def finalize(self, sim=None):
+        self.n_products_used = hpv.Result(name='Doses', npts=sim.res_npts, scale=True)
+        for intv in self.interventions:
+            self.n_products_used += intv.n_products_used
+
 
 class ScreenTreat(hpv.Intervention):
     """
