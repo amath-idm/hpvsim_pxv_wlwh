@@ -1,7 +1,5 @@
 """
-This file is used to run calibrations for TxV 10-country analysis.
-
-Instructions: Go to the CONFIGURATIONS section on lines 29-36 to set up the script before running it.
+Calibraton the South Africa model to HIV and HPV outcomes
 """
 
 # Additions to handle numpy multithreading
@@ -17,6 +15,7 @@ os.environ.update(
 # Standard imports
 import sciris as sc
 import hpvsim as hpv
+import pylab as pl
 
 # Imports from this repository
 import run_sim as rs
@@ -31,7 +30,7 @@ debug = False  # If True, this will do smaller runs that can be run locally for 
 do_save = True
 
 # Run settings for calibration (dependent on debug)
-n_trials = [15000, 10][debug]  # How many trials to run for calibration
+n_trials = [5000, 10][debug]  # How many trials to run for calibration
 n_workers = [40, 1][debug]  # How many cores to use
 storage = ["mysql://hpvsim_user@localhost/hpvsim_db", None][debug]  # Storage for calibrations
 
@@ -63,23 +62,17 @@ def make_priors():
 
 def run_calib(location=None, n_trials=None, n_workers=None,
               do_plot=False, do_save=True, filestem=''):
-    dflocation=location.replace(" ", "_")
-    if location == 'south africa':
-        hiv_datafile = ['data/hiv_incidence_south_africa.csv',
-                        'data/south_africa_female_hiv_mortality.csv',
-                        'data/south_africa_male_hiv_mortality.csv']
-        art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
-                        'data/south_africa_art_coverage_by_age_females.csv']
-
-    else:
-        hiv_datafile = None
-        art_datafile = None
+    dflocation = location.replace(" ", "_")
+    hiv_datafile = ['data/hiv_incidence_south_africa.csv',
+                    'data/south_africa_female_hiv_mortality.csv',
+                    'data/south_africa_male_hiv_mortality.csv']
+    art_datafile = ['data/south_africa_art_coverage_by_age_males.csv',
+                    'data/south_africa_art_coverage_by_age_females.csv']
 
     sim = rs.make_sim(location, hiv_datafile=hiv_datafile, art_datafile=art_datafile, calib=True, art_sens=True)
+
     datafiles = [
-        f'data/{dflocation}_cancer_cases.csv', #Globocan
-        # f'data/{dflocation}_cancer_incidence_by_age_no_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
-        # f'data/{dflocation}_cancer_incidence_by_age_with_hiv.csv', #https://onlinelibrary.wiley.com/doi/10.1002/ijc.34707
+        f'data/{dflocation}_cancer_cases.csv',  # Globocan
         f'data/{dflocation}_asr_cancer_incidence.csv',
         f'data/{dflocation}_cin_types.csv',
         f'data/{dflocation}_cancer_types.csv',
@@ -97,28 +90,17 @@ def run_calib(location=None, n_trials=None, n_workers=None,
         # hpv_reactivation=[0.025, 0, 0.1, 0.025]
     )
 
-    if location is None:
-        sexual_behavior_pars = dict(
-            m_cross_layer=[0.9, 0.5, 0.95, 0.05],
-            m_partners=dict(
-                c=dict(par1=[10, 5, 12, 1])
-            ),
-            f_cross_layer=[0.1, 0.05, 0.5, 0.05],
-            f_partners=dict(
-                c=dict(par1=[1, .5, 2, .1], par2=[.2, .1, 1, .05])
-            )
+    sexual_behavior_pars = dict(
+        m_cross_layer=[0.3, 0.1, 0.7, 0.05],
+        m_partners=dict(
+            c=dict(par1=[0.5, 0.1, 0.6, 0.05])
+        ),
+        f_cross_layer=[0.4, 0.05, 0.7, 0.05],
+        f_partners=dict(
+            c=dict(par1=[0.2, 0.1, 0.6, 0.05])
         )
-    else:
-        sexual_behavior_pars = dict(
-            m_cross_layer=[0.3, 0.1, 0.7, 0.05],
-            m_partners=dict(
-                c=dict(par1=[0.5, 0.1, 0.6, 0.05])
-            ),
-            f_cross_layer=[0.4, 0.05, 0.7, 0.05],
-            f_partners=dict(
-                c=dict(par1=[0.2, 0.1, 0.6, 0.05])
-            )
-        )
+    )
+
     calib_pars = sc.mergedicts(calib_pars, sexual_behavior_pars)
 
     genotype_pars = make_priors()
@@ -187,46 +169,40 @@ def load_calib(location=None, do_plot=True, which_pars=0, save_pars=True, filest
 if __name__ == '__main__':
 
     T = sc.timer()
-    locations = [
-        'south africa'
-    ]
-
+    location = 'south africa'
 
     # Run calibration - usually on VMs
     if 'run_calibration' in to_run:
         filestem = '_feb21_artsens'
-        for location in locations:
-            sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
-                                   do_save=do_save, do_plot=False, filestem=filestem)
+        sim, calib = run_calib(location=location, n_trials=n_trials, n_workers=n_workers,
+                               do_save=do_save, do_plot=False, filestem=filestem)
 
     # Load the calibration, plot it, and save the best parameters -- usually locally
     if 'plot_calibration' in to_run:
 
-        for location in locations:
-            filestem = '_feb21_artsens'
-            calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
+        filestem = '_feb21_artsens'
+        calib = load_calib(location=location, do_plot=True, save_pars=True, filestem=filestem)
 
-            best_par_ind = calib.df.index[0]
-            extra_sim_results = calib.extra_sim_results[best_par_ind]
-            years = calib.sim.results['year']
-            year_ind = sc.findinds(years, 1985)[0]
-            import matplotlib.pylab as pl
+        best_par_ind = calib.df.index[0]
+        extra_sim_results = calib.extra_sim_results[best_par_ind]
+        years = calib.sim.results['year']
+        year_ind = sc.findinds(years, 1985)[0]
 
-            fig, axes = pl.subplots(3, 1)
-            axes[0].plot(years[year_ind:], extra_sim_results['cancers_with_hiv'][year_ind:], label='HIV+')
-            axes[0].plot(years[year_ind:], extra_sim_results['cancers_no_hiv'][year_ind:], label='HIV-')
-            axes[0].plot(years[year_ind:], extra_sim_results['cancers'][year_ind:], label='Total')
-            axes[0].set_title(f'Cancers over time')
-            axes[0].legend()
-            axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
-                         extra_sim_results['cancer_incidence_by_age_with_hiv'][:, -2], label='HIV+')
-            axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
-                         extra_sim_results['cancer_incidence_by_age_no_hiv'][:, -2],
-                         label='HIV-')
-            axes[1].legend()
+        fig, axes = pl.subplots(3, 1)
+        axes[0].plot(years[year_ind:], extra_sim_results['cancers_with_hiv'][year_ind:], label='HIV+')
+        axes[0].plot(years[year_ind:], extra_sim_results['cancers_no_hiv'][year_ind:], label='HIV-')
+        axes[0].plot(years[year_ind:], extra_sim_results['cancers'][year_ind:], label='Total')
+        axes[0].set_title(f'Cancers over time')
+        axes[0].legend()
+        axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
+                     extra_sim_results['cancer_incidence_by_age_with_hiv'][:, -2], label='HIV+')
+        axes[1].plot(calib.sim.pars['age_bin_edges'][:-1],
+                     extra_sim_results['cancer_incidence_by_age_no_hiv'][:, -2],
+                     label='HIV-')
+        axes[1].legend()
 
-            axes[2].plot(years[year_ind:], extra_sim_results['asr_cancer_incidence'][year_ind:])
+        axes[2].plot(years[year_ind:], extra_sim_results['asr_cancer_incidence'][year_ind:])
 
-            fig.show()
+        fig.show()
 
     T.toc('Done')
